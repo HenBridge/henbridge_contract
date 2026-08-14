@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# upgrade.sh — perform an on-chain upgrade of a Lafiya Soroban contract.
+# upgrade.sh — perform an on-chain upgrade of a HenBridge Soroban contract.
 #
 # Automates the mechanical steps of docs/runbooks/contract-upgrade.md:
 #
@@ -173,7 +173,7 @@ fi
 
 # ------------------------------------------------------------- 4. upload ---
 say "step 4/7: uploading wasm (--optimize=false so bytes stay identical to the reviewed artifact)"
-UPLOAD_LOG="$(mktemp -t lafiya-upload-log-XXXXXX)"
+UPLOAD_LOG="$(mktemp -t henbridge-upload-log-XXXXXX)"
 if ! upload_out="$(stellar contract upload --wasm "$WASM_PATH" --optimize=false \
         --source-account "$SOURCE_ACCOUNT" --network "$NETWORK" 2>"$UPLOAD_LOG")"; then
     cat "$UPLOAD_LOG" >&2; rm -f "$UPLOAD_LOG"
@@ -205,7 +205,7 @@ fi
 
 # ------------------------------------------------------------- 7. verify ---
 say "step 7/7: post-upgrade verification"
-VERSION_LOG="$(mktemp -t lafiya-version-log-XXXXXX)"
+VERSION_LOG="$(mktemp -t henbridge-version-log-XXXXXX)"
 if ! version_out="$(stellar contract invoke --id "$CONTRACT_ID" \
         --source-account "$SOURCE_ACCOUNT" --network "$NETWORK" --send no \
         -- get_schema_version 2>"$VERSION_LOG")"; then
@@ -222,7 +222,7 @@ if [ -n "$EXPECTED_SCHEMA_VERSION" ]; then
         || die "schema version mismatch after upgrade: got $POST_VERSION, expected $EXPECTED_SCHEMA_VERSION"
 fi
 
-TMP_WASM="$(mktemp -t lafiya-post-upgrade-XXXXXX.wasm)"
+TMP_WASM="$(mktemp -t henbridge-post-upgrade-XXXXXX.wasm)"
 trap 'rm -f "$TMP_WASM"' EXIT
 stellar contract fetch --id "$CONTRACT_ID" --network "$NETWORK" --out-file "$TMP_WASM" >/dev/null 2>&1 \
     || die "could not fetch on-chain wasm for verification"

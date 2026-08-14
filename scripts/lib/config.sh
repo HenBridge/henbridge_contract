@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Lafiya - Shared Network Config Loader
+# HenBridge - Shared Network Config Loader
 # Shared by deploy script and admin CLI.
 # Parses config/networks.toml for a given --network name.
 #
 # Provides:
 #   load_network_config <network> [--config <path>]
 #   -> sets:
-#     LAFIYA_NETWORK
-#     LAFIYA_RPC_URL
-#     LAFIYA_NETWORK_PASSPHRASE
-#     LAFIYA_ATTESTER_REGISTRY_ID
-#     LAFIYA_ATTESTATION_REGISTRY_ID
+#     HENBRIDGE_NETWORK
+#     HENBRIDGE_RPC_URL
+#     HENBRIDGE_NETWORK_PASSPHRASE
+#     HENBRIDGE_ATTESTER_REGISTRY_ID
+#     HENBRIDGE_ATTESTATION_REGISTRY_ID
 #
 # Usage:
 #   source ./scripts/lib/config.sh
@@ -21,12 +21,12 @@
 set -euo pipefail
 
 # Resolve repo root (one level up from scripts/lib)
-_LAFIYA_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-_LAFIYA_REPO_ROOT="$(cd "$_LAFIYA_LIB_DIR/../.." && pwd)"
-_LAFIYA_DEFAULT_CONFIG="$_LAFIYA_REPO_ROOT/config/networks.toml"
+_HENBRIDGE_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_HENBRIDGE_REPO_ROOT="$(cd "$_HENBRIDGE_LIB_DIR/../.." && pwd)"
+_HENBRIDGE_DEFAULT_CONFIG="$_HENBRIDGE_REPO_ROOT/config/networks.toml"
 
 # Internal: use python3 to parse TOML robustly
-_lafiya_parse_toml() {
+_henbridge_parse_toml() {
     local network="$1"
     local config_path="$2"
     local field="$3"
@@ -74,7 +74,7 @@ PY
 
 load_network_config() {
     local network="${1:-}"
-    local config_path="${2:-$_LAFIYA_DEFAULT_CONFIG}"
+    local config_path="${2:-$_HENBRIDGE_DEFAULT_CONFIG}"
 
     if [[ -z "$network" ]]; then
         echo "Usage: load_network_config <network> [config_path]" >&2
@@ -87,28 +87,28 @@ load_network_config() {
     fi
 
     # Exported globals
-    LAFIYA_NETWORK="$network"
-    LAFIYA_CONFIG_PATH="$config_path"
-    LAFIYA_RPC_URL="$(_lafiya_parse_toml "$network" "$config_path" "rpc_url")"
-    LAFIYA_NETWORK_PASSPHRASE="$(_lafiya_parse_toml "$network" "$config_path" "network_passphrase")"
-    LAFIYA_ATTESTER_REGISTRY_ID="$(_lafiya_parse_toml "$network" "$config_path" "attester_registry")"
-    LAFIYA_ATTESTATION_REGISTRY_ID="$(_lafiya_parse_toml "$network" "$config_path" "attestation_registry")"
+    HENBRIDGE_NETWORK="$network"
+    HENBRIDGE_CONFIG_PATH="$config_path"
+    HENBRIDGE_RPC_URL="$(_henbridge_parse_toml "$network" "$config_path" "rpc_url")"
+    HENBRIDGE_NETWORK_PASSPHRASE="$(_henbridge_parse_toml "$network" "$config_path" "network_passphrase")"
+    HENBRIDGE_ATTESTER_REGISTRY_ID="$(_henbridge_parse_toml "$network" "$config_path" "attester_registry")"
+    HENBRIDGE_ATTESTATION_REGISTRY_ID="$(_henbridge_parse_toml "$network" "$config_path" "attestation_registry")"
 
-    if [[ -z "$LAFIYA_RPC_URL" ]]; then
+    if [[ -z "$HENBRIDGE_RPC_URL" ]]; then
         echo "ERROR: rpc_url empty for network '$network'" >&2
         return 1
     fi
-    if [[ -z "$LAFIYA_NETWORK_PASSPHRASE" ]]; then
+    if [[ -z "$HENBRIDGE_NETWORK_PASSPHRASE" ]]; then
         echo "ERROR: network_passphrase empty for network '$network'" >&2
         return 1
     fi
 
-    export LAFIYA_NETWORK LAFIYA_CONFIG_PATH LAFIYA_RPC_URL LAFIYA_NETWORK_PASSPHRASE
-    export LAFIYA_ATTESTER_REGISTRY_ID LAFIYA_ATTESTATION_REGISTRY_ID
+    export HENBRIDGE_NETWORK HENBRIDGE_CONFIG_PATH HENBRIDGE_RPC_URL HENBRIDGE_NETWORK_PASSPHRASE
+    export HENBRIDGE_ATTESTER_REGISTRY_ID HENBRIDGE_ATTESTATION_REGISTRY_ID
 }
 
 list_networks() {
-    local config_path="${1:-$_LAFIYA_DEFAULT_CONFIG}"
+    local config_path="${1:-$_HENBRIDGE_DEFAULT_CONFIG}"
     python3 - "$config_path" <<'PY'
 import sys
 config_path = sys.argv[1]
@@ -125,18 +125,18 @@ PY
 
 print_network_config() {
     local network="${1:-}"
-    local config_path="${2:-$_LAFIYA_DEFAULT_CONFIG}"
+    local config_path="${2:-$_HENBRIDGE_DEFAULT_CONFIG}"
     if [[ -z "$network" ]]; then
         echo "Usage: print_network_config <network>" >&2
         return 1
     fi
     load_network_config "$network" "$config_path"
-    echo "Network: $LAFIYA_NETWORK"
-    echo "Config: $LAFIYA_CONFIG_PATH"
-    echo "RPC URL: $LAFIYA_RPC_URL"
-    echo "Passphrase: $LAFIYA_NETWORK_PASSPHRASE"
-    echo "Attester Registry: ${LAFIYA_ATTESTER_REGISTRY_ID:-<not deployed>}"
-    echo "Attestation Registry: ${LAFIYA_ATTESTATION_REGISTRY_ID:-<not deployed>}"
+    echo "Network: $HENBRIDGE_NETWORK"
+    echo "Config: $HENBRIDGE_CONFIG_PATH"
+    echo "RPC URL: $HENBRIDGE_RPC_URL"
+    echo "Passphrase: $HENBRIDGE_NETWORK_PASSPHRASE"
+    echo "Attester Registry: ${HENBRIDGE_ATTESTER_REGISTRY_ID:-<not deployed>}"
+    echo "Attestation Registry: ${HENBRIDGE_ATTESTATION_REGISTRY_ID:-<not deployed>}"
 }
 
 # If sourced directly for testing: allow CLI
