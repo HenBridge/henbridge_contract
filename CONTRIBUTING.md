@@ -1,8 +1,8 @@
-# Contributing to Lafiya Smart Contracts
+# Contributing to HenBridge Smart Contracts
 
-Thank you for your interest in contributing to Lafiya! Lafiya is an open-source Digital Public Good (DPG) aiming to bring verified, patient-controlled emergency health cards to the last mile. Your contributions help make this trust layer more robust, secure, and accessible.
+Thank you for your interest in contributing to HenBridge! HenBridge is an open-source Digital Public Good (DPG) aiming to bring verified, patient-controlled emergency health cards to the last mile. Your contributions help make this trust layer more robust, secure, and accessible.
 
-This repository holds the Soroban (Stellar) smart contracts. Because Lafiya is a multi-repo ecosystem, contributions here often have ripple effects across other repositories. This guide outlines the setup, conventions, and workflows required to contribute safely.
+This repository holds the Soroban (Stellar) smart contracts. Because HenBridge is a multi-repo ecosystem, contributions here often have ripple effects across other repositories. This guide outlines the setup, conventions, and workflows required to contribute safely.
 
 - Rust (stable), installed via [rustup](https://rustup.rs)
 - The `wasm32v1-none` target: `rustup target add wasm32v1-none`
@@ -54,38 +54,38 @@ We encourage [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## Cross-Repo Coordination & Shared Contracts
 
-Lafiya is composed of five distinct repositories in the `Lafiya-xyz` organization:
-1. [lafiya-web](https://github.com/Lafiya-xyz/lafiya-web): Next.js web application (patient records, QR, allowlist management interface).
-2. [lafiya-contracts](https://github.com/Lafiya-xyz/Lafiya-contract) (this repo): Soroban smart contracts (attester allowlist, attestation registry).
-3. [lafiya-docs](https://github.com/Lafiya-xyz/lafiya-docs): Architectural documentation, threat model, and references.
-4. [.github](https://github.com/Lafiya-xyz/.github): Organization-level files.
-5. [lafiya-verifier](https://github.com/Lafiya-xyz/lafiya-verifier): Standalone verification tool.
+HenBridge is composed of five distinct repositories in the `HenBridge` organization:
+1. [henbridge-web](https://github.com/HenBridge/henbridge_frontend): Next.js web application (patient records, QR, allowlist management interface).
+2. [henbridge-contracts](https://github.com/HenBridge/henbridge_contract) (this repo): Soroban smart contracts (attester allowlist, attestation registry).
+3. [henbridge-docs](https://github.com/HenBridge/henbridge_docs): Architectural documentation, threat model, and references.
+4. [.github](https://github.com/HenBridge/.github): Organization-level files.
+5. [henbridge-verifier](https://github.com/HenBridge/henbridge_backend): Standalone verification tool.
 
 ### Shared Contracts Constraint
-The on-chain attestation schema (a 32-byte record hash, attester Address, and timestamp) acts as a **shared contract** between `lafiya-contracts` and `lafiya-web`.
+The on-chain attestation schema (a 32-byte record hash, attester Address, and timestamp) acts as a **shared contract** between `henbridge-contracts` and `henbridge-web`.
 > [!IMPORTANT]
-> If you modify a smart contract function signature, event payload, or the return shape of `get_attestation`, you **must** flag this change. It will break the off-chain patient profile and verification displays in `lafiya-web`.
+> If you modify a smart contract function signature, event payload, or the return shape of `get_attestation`, you **must** flag this change. It will break the off-chain patient profile and verification displays in `henbridge-web`.
 
 **How to flag cross-repo changes:**
 1. Check the **Cross-Repo Impact** section in the PR template.
-2. Link the corresponding issue/PR in the `lafiya-web` repository.
+2. Link the corresponding issue/PR in the `henbridge-web` repository.
 3. Coordinate with maintainers to ensure both repositories are updated and deployed in tandem.
 
 ---
 
 ## Database & Supabase Migrations
 
-While `lafiya-contracts` is a Rust smart contract repository and contains no database code:
-- The main web application `lafiya-web` uses **Supabase** for its encrypted off-chain storage.
+While `henbridge-contracts` is a Rust smart contract repository and contains no database code:
+- The main web application `henbridge-web` uses **Supabase** for its encrypted off-chain storage.
 - If your contribution spans both the smart contracts and the database schema (e.g., adding field tracking for attestation IDs off-chain):
 
-### Migration Guidelines (in `lafiya-web`)
+### Migration Guidelines (in `henbridge-web`)
 1. **Supabase CLI**: Use the Supabase CLI to generate a new migration:
    ```bash
    supabase migration new your_migration_name
    ```
 2. **Hand-Authored Types**: We use hand-authored types for database safety and strict runtime boundaries. The types are documented and maintained in:
-   [lafiya-web/lib/supabase/types.ts](https://github.com/Lafiya-xyz/lafiya-web/blob/main/lib/supabase/types.ts)
+   [henbridge-web/lib/supabase/types.ts](https://github.com/HenBridge/henbridge_frontend/blob/main/lib/supabase/types.ts)
    > [!WARNING]
    > Do **not** auto-generate database types and overwrite `lib/supabase/types.ts` blindly. Any schema change must have its typescript types updated by hand following the existing patterns to preserve custom wrappers, type guards, and safety boundaries.
 

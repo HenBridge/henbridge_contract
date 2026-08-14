@@ -2,11 +2,11 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-18
-- **Deciders:** Lafiya contract maintainers
+- **Deciders:** HenBridge contract maintainers
 
 ## Context
 
-Lafiya needs a responder to verify that an authorized health worker attested to a specific
+HenBridge needs a responder to verify that an authorized health worker attested to a specific
 emergency record. The record itself can contain highly sensitive health information. Soroban
 state is replicated and long-lived, so placing health facts, patient identifiers, public record
 URLs, or encrypted record payloads on-chain would create unnecessary disclosure and retention
@@ -17,7 +17,7 @@ It does not need to read or interpret the record contents.
 
 ## Decision
 
-No patient identifiers, health-record contents, or other personal health data will be stored by `Lafiya-contract`.
+No patient identifiers, health-record contents, or other personal health data will be stored by `HenBridge-contract`.
 
 `attestation-registry` accepts an opaque `BytesN<32>` `record_hash` and stores the latest
 attestation under that key. On-chain state may contain:
@@ -27,7 +27,7 @@ attestation under that key. On-chain state may contain:
 - the attester allowlist; and
 - contract configuration such as administrator and registry addresses.
 
-The off-chain Lafiya application is responsible for constructing the commitment. A plain hash
+The off-chain HenBridge application is responsible for constructing the commitment. A plain hash
 of predictable, low-entropy health fields is not automatically private: it can be vulnerable to
 dictionary guessing. Commitment construction must therefore be defined by the off-chain data
 model and threat model, including canonical serialization, domain separation, and secret
@@ -65,7 +65,7 @@ tamper-evident trust anchor.
 
 ### Trade-offs and risks
 
-- Lafiya still depends on the off-chain system for confidentiality, availability, consent, and
+- HenBridge still depends on the off-chain system for confidentiality, availability, consent, and
   record presentation.
 - A commitment proves integrity relative to a preimage; it does not prove medical correctness.
 - Updating a record creates a different commitment, and previously published commitments cannot

@@ -107,7 +107,7 @@ Requires a maintainer decision, not a default. Two concrete shapes:
    off-chain enumeration via the `AttestationRecorded` event log, replayed
    as batched `revoke_attestation` calls from the CLI/indexer.
 
-Given `lafiya-cli` and the event-indexer design already depend on
+Given `henbridge-cli` and the event-indexer design already depend on
 off-chain event replay elsewhere, option 2's off-chain-enumeration variant
 is the pragmatic default — but this is a trust-model tradeoff for a
 maintainer to own explicitly, not to inherit by omission.
@@ -119,14 +119,14 @@ de facto behavior). Defensible only as an explicit decision — "an
 attestation is an immutable historical fact; responders must
 independently verify current attester status via a second call" — but if
 so, `get_attestation`'s current shape gives no signal that a second
-lookup is required, and `lafiya-web`'s verification display needs to say
+lookup is required, and `henbridge-web`'s verification display needs to say
 so explicitly to end users.
 
 ## Scope / Cross-Repo Impact
 
 Likely changes `get_attestation`'s public shape or adds a new function —
 per `CONTRIBUTING.md`'s cross-repo rule, this must be flagged to
-`lafiya-web` maintainers before implementation, since it is presumably
+`henbridge-web` maintainers before implementation, since it is presumably
 the primary consumer of this read path.
 
 ## Verification
@@ -136,4 +136,4 @@ the primary consumer of this read path.
 - [ ] The chosen mechanism is implemented and tested, including a test
       reproducing the attack trace above and asserting the read path
       reflects the decision.
-- [ ] Cross-repo impact flagged to `lafiya-web` per `CONTRIBUTING.md`.
+- [ ] Cross-repo impact flagged to `henbridge-web` per `CONTRIBUTING.md`.

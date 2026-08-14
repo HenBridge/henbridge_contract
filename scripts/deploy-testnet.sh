@@ -3,7 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Lafiya Smart Contract Deployment Script
+# HenBridge Smart Contract Deployment Script
 # Deploys both contracts to Stellar Testnet (or other networks) and initializes them.
 
 NETWORK="testnet"
@@ -87,7 +87,7 @@ fi
 
 # Print configuration and ask for confirmation
 echo "=========================================================="
-echo "           Lafiya Soroban Contract Deployment"
+echo "           HenBridge Soroban Contract Deployment"
 echo "=========================================================="
 echo "Network:       $NETWORK"
 echo "Identity:      $IDENTITY"

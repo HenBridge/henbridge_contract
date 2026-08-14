@@ -1,6 +1,6 @@
-# Lafiya Smart Contract Error Codes
+# HenBridge Smart Contract Error Codes
 
-This document enumerates the error codes defined in the Lafiya Soroban smart contracts.
+This document enumerates the error codes defined in the HenBridge Soroban smart contracts.
 
 > [!IMPORTANT]
 > **Error codes are contract-scoped, not global.** Each contract defines its own `Error` enum starting from `1`. To correctly interpret an error code, you must know which contract produced the error.

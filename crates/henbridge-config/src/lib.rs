@@ -68,7 +68,7 @@ pub fn default_config_path() -> PathBuf {
     }
 
     // Fallback: relative to this crate's manifest dir (if running via cargo from workspace)
-    // crates/lafiya-config -> ../../config/networks.toml
+    // crates/henbridge-config -> ../../config/networks.toml
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let fallback = manifest_dir.join("../../config/networks.toml");
     if fallback.exists() {

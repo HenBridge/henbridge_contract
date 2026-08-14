@@ -1,6 +1,6 @@
 # Storage Versioning and Upgrade Conventions
 
-This document defines the architecture and conventions for managing storage schema changes and versioning across contract upgrades in Lafiya's Soroban smart contracts.
+This document defines the architecture and conventions for managing storage schema changes and versioning across contract upgrades in HenBridge's Soroban smart contracts.
 
 ## 1. DataKey Evolution
 

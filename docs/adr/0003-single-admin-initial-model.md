@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-07-18
-- **Deciders:** Lafiya contract maintainers
+- **Deciders:** HenBridge contract maintainers
 
 ## Context
 
@@ -24,8 +24,8 @@ For the pre-alpha contracts, each registry stores one `Admin` address during `in
 Admin-gated functions retrieve that address and call `require_auth()`.
 
 This is an initial implementation simplification, not the intended production custody model.
-Before a production or mainnet deployment, Lafiya must complete the multisig work tracked in
-[issue #19](https://github.com/Lafiya-xyz/Lafiya-contract/issues/19). The preferred direction is
+Before a production or mainnet deployment, HenBridge must complete the multisig work tracked in
+[issue #19](https://github.com/HenBridge/henbridge_contract/issues/19). The preferred direction is
 to initialize the registries with a Soroban multisig or smart-account contract that satisfies
 standard authorization, rather than adding bespoke N-of-M logic to each registry.
 
@@ -68,12 +68,12 @@ attesters must be removable.
 
 ## Follow-up
 
-- Complete [issue #19](https://github.com/Lafiya-xyz/Lafiya-contract/issues/19).
+- Complete [issue #19](https://github.com/HenBridge/henbridge_contract/issues/19).
 - Add a test proving that a multisig-backed contract address can authorize admin-gated calls.
 - Document deployment and recovery procedures for the selected production admin account.
 
 ## References
 
-- [Issue #19: Add admin multisig / N-of-M authorization](https://github.com/Lafiya-xyz/Lafiya-contract/issues/19)
+- [Issue #19: Add admin multisig / N-of-M authorization](https://github.com/HenBridge/henbridge_contract/issues/19)
 - [`contracts/attester-registry/src/lib.rs`](../../contracts/attester-registry/src/lib.rs)
 - [`contracts/attestation-registry/src/lib.rs`](../../contracts/attestation-registry/src/lib.rs)

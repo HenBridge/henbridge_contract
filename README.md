@@ -1,51 +1,51 @@
-# Lafiya 🔏
+# HenBridge 🔏
 
 [![Built on Stellar](https://img.shields.io/badge/Built%20on-Stellar-blue?logo=stellar)](https://stellar.org)
 [![Soroban Smart Contracts](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org)
 [![Status](https://img.shields.io/badge/status-pre--alpha-orange)]()
 [![Network](https://img.shields.io/badge/network-testnet-lightgrey)]()
-[![CI](https://github.com/Lafiya-xyz/Lafiya-contract/actions/workflows/ci.yml/badge.svg)](https://github.com/Lafiya-xyz/Lafiya-contract/actions/workflows/ci.yml)
+[![CI](https://github.com/HenBridge/henbridge_contract/actions/workflows/ci.yml/badge.svg)](https://github.com/HenBridge/henbridge_contract/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Docs](https://github.com/Lafiya-xyz/Lafiya-contract/actions/workflows/docs.yml/badge.svg)](https://Lafiya-xyz.github.io/Lafiya-contract/)
+[![Docs](https://github.com/HenBridge/henbridge_contract/actions/workflows/docs.yml/badge.svg)](https://henbridge.github.io/henbridge_contract/)
 
-Soroban smart contracts for Lafiya's on-chain trust layer — an attestation registry and attester allowlist that let a health worker's verification of an emergency health record be checked cryptographically, without the underlying health data ever touching the blockchain.
+Soroban smart contracts for HenBridge's on-chain trust layer — an attestation registry and attester allowlist that let a health worker's verification of an emergency health record be checked cryptographically, without the underlying health data ever touching the blockchain.
 
-**Your vitals, verified. When you can't speak, Lafiya does.**
+**Your vitals, verified. When you can't speak, HenBridge does.**
 
-*Lafiya* is Hausa for health, safety, and wellbeing.
+
 
 > **Status:** Pre-alpha · Stellar **testnet** · not yet audited · not a medical device. See [Disclaimer](#disclaimer).
 
 ## Overview
 
-🔗 Documentation: https://Lafiya-xyz.github.io/Lafiya-contract/
+🔗 Documentation: https://henbridge.github.io/henbridge_contract/
 
 
-Lafiya is a free, patient-owned emergency health card: the handful of facts that change how you are treated in an emergency — blood group, genotype, allergies, current medications, chronic conditions — travel with you as a scannable QR code and can be **cryptographically verified** by a health worker so a first responder can trust them on the spot.
+HenBridge is a free, patient-owned emergency health card: the handful of facts that change how you are treated in an emergency — blood group, genotype, allergies, current medications, chronic conditions — travel with you as a scannable QR code and can be **cryptographically verified** by a health worker so a first responder can trust them on the spot.
 
-This repository (`lafiya-contracts`) contains only the Soroban smart contract layer. The patient-facing web app and the docs/threat-model materials live in separate repos — see [Lafiya Organization](#lafiya-organization) below.
+This repository (`henbridge-contracts`) contains only the Soroban smart contract layer. The patient-facing web app and the docs/threat-model materials live in separate repos — see [HenBridge Organization](#henbridge-organization) below.
 
 ### The Problem
 
 In Nigeria, health records are paper, siloed per facility, and effectively lost the moment a patient moves, is referred, or arrives unconscious. In an emergency, the facts that decide treatment — especially **genotype** (AS/SS sickle-cell status), blood group, and drug allergies — are usually unknown to whoever is treating you, and wrong assumptions cost lives.
 
-Even once that data is digitized (in `lafiya-web`), a responder still has no way to know whether a card's contents were ever checked by a real health worker. Without an independent, tamper-evident verification layer:
+Even once that data is digitized (in `henbridge-web`), a responder still has no way to know whether a card's contents were ever checked by a real health worker. Without an independent, tamper-evident verification layer:
 
 - **Responders can't trust the data** — anyone could edit a public emergency page, so a "verified" label is meaningless unless it's backed by something the patient (or an attacker) can't forge
 - **Health workers have no portable proof of their verification work** — nothing links a specific attester to a specific record across systems
 - **Community health workers (CHWs) can't be paid reliably** for last-mile registration and verification without a transparent, low-fee settlement rail
 
-### What `lafiya-contracts` Does
+### What `henbridge-contracts` Does
 
 - **Attests** — records, on-chain, that a licensed health worker verified a specific patient record at a specific time, without storing any health data itself
 - **Allowlists** — maintains the set of health workers authorized to submit attestations, so a "verified" indicator on a card actually means something
-- **Anchors trust** — gives `lafiya-web` and `lafiya-verifier` a single, independently checkable source of truth that a responder's QR scan can query directly
+- **Anchors trust** — gives `henbridge-web` and `henbridge-verifier` a single, independently checkable source of truth that a responder's QR scan can query directly
 
 ## Features
 
 - **Attestation registry (Soroban)** — when a licensed health worker verifies a record, an on-chain attestation stores *a hash of the record + the attester's identity + a timestamp* — never the health data itself
 - **Attester allowlist** — only allowlisted attesters can write to the registry, so verification can't be forged by an arbitrary wallet
-- **Hash-only on-chain footprint** — personal data lives in `lafiya-web`'s encrypted, access-controlled off-chain database; Stellar holds only hashes, attestations, and payments
+- **Hash-only on-chain footprint** — personal data lives in `henbridge-web`'s encrypted, access-controlled off-chain database; Stellar holds only hashes, attestations, and payments
 - **USDC incentive rails** — CHWs are paid micro-amounts on Stellar per verified registration; near-zero fees and stablecoin settlement make last-mile outreach economically viable
 - **Transparent funding** — grant and donor funds flow on-chain into the CHW incentive pool, so every dollar maps to a countable number of verified cards
 
@@ -53,12 +53,12 @@ Even once that data is digitized (in `lafiya-web`), a responder still has no way
 
 ```mermaid
 graph TB
-    subgraph OffChain["Off-chain (lafiya-web)"]
+    subgraph OffChain["Off-chain (henbridge-web)"]
         PROFILE[Patient profile — Supabase]
         CARD[Public emergency page + QR]
     end
 
-    subgraph Contracts["lafiya-contracts (Soroban)"]
+    subgraph Contracts["henbridge-contracts (Soroban)"]
         ALLOW[Attester allowlist]
         REG[Attestation registry]
     end
@@ -90,7 +90,7 @@ All three are implemented and unit-tested (target milestone **M1**, see [Roadmap
 
 Three Soroban contracts, each in its own crate under `contracts/`.
 
-**Design principle:** no personal health data ever touches the blockchain. Personal data lives in `lafiya-web`'s encrypted, access-controlled off-chain database. Stellar holds only hashes, attestations, and payments. This is what keeps Lafiya both privacy-respecting and regulator-compatible.
+**Design principle:** no personal health data ever touches the blockchain. Personal data lives in `henbridge-web`'s encrypted, access-controlled off-chain database. Stellar holds only hashes, attestations, and payments. This is what keeps HenBridge both privacy-respecting and regulator-compatible.
 
 ### `attester-registry`
 
@@ -176,7 +176,7 @@ CONTRIBUTING.md               # local dev workflow
 
 ## TypeScript Client Bindings
 
-Client bindings are generated from the built WASM contracts using the `stellar-cli` tool. They allow frontend applications (like `lafiya-web`) to interact with the deployed contracts with full type safety.
+Client bindings are generated from the built WASM contracts using the `stellar-cli` tool. They allow frontend applications (like `henbridge-web`) to interact with the deployed contracts with full type safety.
 
 ### Generation
 
@@ -199,10 +199,10 @@ cd ../attestation-registry && npm install && npm run build
 
 ### Publishing & Consumption
 
-The generated bindings are committed directly to this repository under the `bindings/` directory. `lafiya-web` (or any other consumer) can consume them via:
+The generated bindings are committed directly to this repository under the `bindings/` directory. `henbridge-web` (or any other consumer) can consume them via:
 - Direct git path dependency in `package.json` pointing to the repo or subdirectory.
 - A git submodule in the consuming project.
-- Alternatively, CI/CD can be configured to publish these directories as packages to the `@lafiya` npm organization.
+- Alternatively, CI/CD can be configured to publish these directories as packages to the `@henbridge` npm organization.
 
 
 ## Tech Stack
@@ -214,8 +214,8 @@ The generated bindings are committed directly to this repository under the `bind
 ## Getting Started
 
 ```bash
-git clone https://github.com/Lafiya-xyz/Lafiya-contract.git
-cd Lafiya-contract
+git clone https://github.com/HenBridge/henbridge_contract.git
+cd HenBridge-contract
 rustup target add wasm32v1-none   # also picked up automatically via rust-toolchain.toml
 make check                        # fmt-check + clippy + test + wasm build
 ```
@@ -238,7 +238,7 @@ The registry contracts need no multisig-specific logic. Their existing `admin.re
 > movement, or nested invocations that a valid quorum may approve. It is not a
 > registry-scoped or least-privileged account.
 
-For pre-alpha use, assign a signer set dedicated exclusively to Lafiya registry administration;
+For pre-alpha use, assign a signer set dedicated exclusively to HenBridge registry administration;
 do not reuse those keys or that quorum for treasury or unrelated authority. Do not use the
 multisig address as a treasury: keep only the bounded XLM fee reserve recorded for the deployment
 and sweep any excess. Before signing, each signer must inspect the decoded authorization tree
@@ -256,20 +256,20 @@ Not yet deployed to testnet — deployment scripts and instructions land with th
 
 ## Privacy & Compliance
 
-- **Nigeria Data Protection Act (2023)** governs all personal data held across the Lafiya project. Consent, encryption, and minimal disclosure are designed in from day one.
+- **Nigeria Data Protection Act (2023)** governs all personal data held across the HenBridge project. Consent, encryption, and minimal disclosure are designed in from day one.
 - No health data is ever written on-chain — only non-reversible hashes and attestations, by design (see [Smart Contract Layer](#smart-contract-layer)).
 
 ## Roadmap
 
-- **M0 — Public card (testnet).** One patient can create a profile and expose a working read-only emergency page via QR. *(`lafiya-web`)*
-- **M1 — Attestation.** Soroban registry lets an allowlisted attester verify a record; the card shows a verified indicator. **← this repo** — contracts implemented and unit-tested; testnet deployment and `lafiya-web` integration still open.
+- **M0 — Public card (testnet).** One patient can create a profile and expose a working read-only emergency page via QR. *(`henbridge-web`)*
+- **M1 — Attestation.** Soroban registry lets an allowlisted attester verify a record; the card shows a verified indicator. **← this repo** — contracts implemented and unit-tested; testnet deployment and `henbridge-web` integration still open.
 - **M2 — Incentives.** USDC-on-Stellar payout to a CHW per verified registration.
 - **M3 — Pilot.** Small supervised field pilot; measure verified cards created and scan events.
 - **M4 — Mainnet + funding.** Launch on mainnet; open transparent funding pool.
 
 ## Why This Matters for the Stellar Ecosystem
 
-Stellar/Soroban does two things Lafiya genuinely needs that a plain web app cannot: it makes verification **tamper-evident and independently checkable** without exposing data, and it moves **stablecoin micropayments** to health workers cheaply and across borders. Remove Stellar and the trust layer and the incentive engine both disappear — Soroban is core to Lafiya, not shoehorned in.
+Stellar/Soroban does two things HenBridge genuinely needs that a plain web app cannot: it makes verification **tamper-evident and independently checkable** without exposing data, and it moves **stablecoin micropayments** to health workers cheaply and across borders. Remove Stellar and the trust layer and the incentive engine both disappear — Soroban is core to HenBridge, not shoehorned in.
 
 ## Testing
 
@@ -302,7 +302,7 @@ Covers, per contract (see `contracts/*/src/test.rs` and `tests/integration/run.s
 
 ## Contributing
 
-Contributions are welcome! As an open-source Digital Public Good, we rely on community contributions to build and maintain Lafiya.
+Contributions are welcome! As an open-source Digital Public Good, we rely on community contributions to build and maintain HenBridge.
 
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for our detailed guidelines, which cover:
 - Local development environment setup
@@ -315,60 +315,60 @@ This repository specifically needs collaborators with experience in:
 - Stellar / Soroban smart contract development (Rust)
 - On-chain data modeling and attestation/verifiable-credential design
 
-## Lafiya Organization
+## HenBridge Organization
 
-This repo is one of five in the `lafiya-xyz` organization.
+This repo is one of five in the `henbridge` organization.
 
 | Repo                  | URL | Purpose                                                                                              | Priority                 |
 | ---------------------- | --- | ----------------------------------------------------------------------------------------------------- | ------------------------- |
-| `lafiya-web`           | [github.com/Lafiya-xyz/lafiya-web](https://github.com/Lafiya-xyz/lafiya-web) | Patient + responder web app (Next.js). Public emergency page, authed profile editor, QR generation.    | Build first               |
-| **`lafiya-contracts`** _(this repo)_ | [github.com/Lafiya-xyz/Lafiya-contract](https://github.com/Lafiya-xyz/Lafiya-contract) | Soroban smart contracts (Rust): attestation registry + attester allowlist. Testnet first. | **Build next**            |
-| `lafiya-docs`          | [github.com/Lafiya-xyz/lafiya-docs](https://github.com/Lafiya-xyz/lafiya-docs) | Concept note, data model, threat model, privacy design, funding/DPG materials, references.             | Start now (lightweight)   |
-| `.github`              | [github.com/Lafiya-xyz/.github](https://github.com/Lafiya-xyz/.github) | Organization profile README and contribution guidelines.                                               | Start now                 |
-| `lafiya-verifier`      | [github.com/Lafiya-xyz/lafiya-verifier](https://github.com/Lafiya-xyz/lafiya-verifier) | CHW verification tool. Begins as a route inside `lafiya-web`; split out only if it grows.               | Later                     |
+| `henbridge-web`           | [github.com/HenBridge/henbridge_frontend](https://github.com/HenBridge/henbridge_frontend) | Patient + responder web app (Next.js). Public emergency page, authed profile editor, QR generation.    | Build first               |
+| **`henbridge-contracts`** _(this repo)_ | [github.com/HenBridge/henbridge_contract](https://github.com/HenBridge/henbridge_contract) | Soroban smart contracts (Rust): attestation registry + attester allowlist. Testnet first. | **Build next**            |
+| `henbridge-docs`          | [github.com/HenBridge/henbridge_docs](https://github.com/HenBridge/henbridge_docs) | Concept note, data model, threat model, privacy design, funding/DPG materials, references.             | Start now (lightweight)   |
+| `.github`              | [github.com/HenBridge/.github](https://github.com/HenBridge/.github) | Organization profile README and contribution guidelines.                                               | Start now                 |
+| `henbridge-verifier`      | [github.com/HenBridge/henbridge_backend](https://github.com/HenBridge/henbridge_backend) | CHW verification tool. Begins as a route inside `henbridge-web`; split out only if it grows.               | Later                     |
 
-> Resist scaffolding empty repos. Two working repos (`lafiya-web`, `lafiya-contracts`) beat five half-built ones. Build one honest milestone at a time.
+> Resist scaffolding empty repos. Two working repos (`henbridge-web`, `henbridge-contracts`) beat five half-built ones. Build one honest milestone at a time.
 
 ### Data Flow
 
 ```
-lafiya-web  ──(record hash)──▶  lafiya-contracts
+henbridge-web  ──(record hash)──▶  henbridge-contracts
                                        │
         CHW attests ──(licensed?)──▶  │  (attester allowlist check)
                                        ▼
                           attestation: hash + attester id + timestamp
                                        │
                                        ▼
-                              lafiya-web public emergency page
+                              henbridge-web public emergency page
                                        │
                                        ▼
                          responder scans QR, sees verified indicator
 ```
 
-1. **`lafiya-web`** holds the patient's private profile and computes a hash of the emergency-relevant record.
+1. **`henbridge-web`** holds the patient's private profile and computes a hash of the emergency-relevant record.
 2. A licensed CHW, verified against the **attester allowlist**, submits an attestation to the **attestation registry** in this repo — a hash, the attester's identity, and a timestamp, never the health data itself.
-3. **`lafiya-web`**'s public emergency page reads the attestation to show a verified indicator; a responder scanning the QR can independently trust it without an external oracle.
-4. **`lafiya-verifier`** (later) gives CHWs a dedicated flow for step 2 as it splits out of `lafiya-web`.
+3. **`henbridge-web`**'s public emergency page reads the attestation to show a verified indicator; a responder scanning the QR can independently trust it without an external oracle.
+4. **`henbridge-verifier`** (later) gives CHWs a dedicated flow for step 2 as it splits out of `henbridge-web`.
 
 ### Shared Contracts (must stay in sync across repos)
 
-**Attestation schema** — a hash of the record + the attester's identity + a timestamp, defined by the contracts in this repo and consumed by `lafiya-web`'s public emergency page. If the shape of an attestation changes here, `lafiya-web`'s verification-display logic must be updated in the same change set (or a tracked follow-up opened there).
+**Attestation schema** — a hash of the record + the attester's identity + a timestamp, defined by the contracts in this repo and consumed by `henbridge-web`'s public emergency page. If the shape of an attestation changes here, `henbridge-web`'s verification-display logic must be updated in the same change set (or a tracked follow-up opened there).
 
 ### Conventions for AI Agents
 
 - Treat this section as the source of truth for **cross-repo** contracts. Each repo's own README covers repo-local conventions.
 - The contracts are implemented and unit-tested but not yet deployed to testnet — don't assume a live contract ID or deployment scripts exist; check [Repository Structure](#repository-structure) before referencing a path.
-- When a change here affects the attestation schema or either contract's function signatures, call it out explicitly so `lafiya-web` can be updated to match.
+- When a change here affects the attestation schema or either contract's function signatures, call it out explicitly so `henbridge-web` can be updated to match.
 
 ## Support
 
 For issues and questions:
 
-- GitHub Issues: [Create an issue](https://github.com/Lafiya-xyz/Lafiya-contract/issues)
+- GitHub Issues: [Create an issue](https://github.com/HenBridge/henbridge_contract/issues)
 
 ## Disclaimer
 
-Lafiya is an information aid, **not a medical device** and **not a substitute for professional medical judgment**. Verified indicators reflect that a record was attested by a registered health worker; they are not a clinical guarantee. Treatment decisions remain the responsibility of the attending clinician.
+HenBridge is an information aid, **not a medical device** and **not a substitute for professional medical judgment**. Verified indicators reflect that a record was attested by a registered health worker; they are not a clinical guarantee. Treatment decisions remain the responsibility of the attending clinician.
 
 ## Security
 
@@ -376,11 +376,11 @@ Found a vulnerability? Please don't open a public issue — see [SECURITY.md](SE
 
 ## References
 
-These works directly informed Lafiya's design and are the intended reading for contributors, particularly the attestation/trust-layer work in this repo.
+These works directly informed HenBridge's design and are the intended reading for contributors, particularly the attestation/trust-layer work in this repo.
 
 **Books**
 
-- Preukschat, A., & Reed, D. (2021). *Self-Sovereign Identity: Decentralized Digital Identity and Verifiable Credentials*. Manning. — The blueprint for Lafiya's attestation layer: issuer/holder/verifier roles, verifiable credentials, hash-based attestation, key management, and offline verification.
+- Preukschat, A., & Reed, D. (2021). *Self-Sovereign Identity: Decentralized Digital Identity and Verifiable Credentials*. Manning. — The blueprint for HenBridge's attestation layer: issuer/holder/verifier roles, verifiable credentials, hash-based attestation, key management, and offline verification.
 - Kleppmann, M. (2017). *Designing Data-Intensive Applications*. O'Reilly. — Informs the boundary between what lives in the off-chain database and what is anchored on-chain.
 - Martin, R. C. (2017). *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Prentice Hall. — Discipline for an AI-assisted codebase: clear boundaries so the contracts, app, and data layer stay independently maintainable.
 - Shortliffe, E. H., & Cimino, J. J. (Eds.). (2021). *Biomedical Informatics: Computer Applications in Health Care and Biomedicine* (5th ed.). Springer. — Grounds which fields are decision-relevant in an emergency, informing what a record hash here actually represents.
@@ -397,7 +397,7 @@ These works directly informed Lafiya's design and are the intended reading for c
 
 <div align="center">
 
-**Lafiya** — Your vitals, verified.
+**HenBridge** — Your vitals, verified.
 
 _Built for the Stellar ecosystem. Open source. Community owned._
 

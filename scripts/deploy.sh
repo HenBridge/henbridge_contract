@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lafiya - Deployment Script
+# HenBridge - Deployment Script
 # Deploys attester-registry and attestation-registry to selected network,
 # using config/networks.toml for RPC URL and passphrase.
 #
@@ -34,7 +34,7 @@ BUILD_ONLY="false"
 
 usage() {
     cat <<EOF
-Lafiya Contract Deployment
+HenBridge Contract Deployment
 
 Usage: $0 [options]
 
@@ -102,11 +102,11 @@ done
 echo "==> Loading network config: $NETWORK from $CONFIG_PATH"
 load_network_config "$NETWORK" "$CONFIG_PATH"
 
-echo "    Network: $LAFIYA_NETWORK"
-echo "    RPC URL: $LAFIYA_RPC_URL"
-echo "    Passphrase: $LAFIYA_NETWORK_PASSPHRASE"
-echo "    Existing attester-registry: ${LAFIYA_ATTESTER_REGISTRY_ID:-<none>}"
-echo "    Existing attestation-registry: ${LAFIYA_ATTESTATION_REGISTRY_ID:-<none>}"
+echo "    Network: $HENBRIDGE_NETWORK"
+echo "    RPC URL: $HENBRIDGE_RPC_URL"
+echo "    Passphrase: $HENBRIDGE_NETWORK_PASSPHRASE"
+echo "    Existing attester-registry: ${HENBRIDGE_ATTESTER_REGISTRY_ID:-<none>}"
+echo "    Existing attestation-registry: ${HENBRIDGE_ATTESTATION_REGISTRY_ID:-<none>}"
 
 if [[ "$DRY_RUN" == "true" ]]; then
     echo "[DRY RUN] Would deploy to $NETWORK"
@@ -219,19 +219,19 @@ initialize_contract() {
 
     stellar contract invoke \
         --id "$contract_id" \
-        --rpc-url "$LAFIYA_RPC_URL" \
-        --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+        --rpc-url "$HENBRIDGE_RPC_URL" \
+        --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
         "${STELLAR_SOURCE_ARGS[@]}" \
         -- "$func" "$@"
 }
 
 # Deploy attester-registry
-ATTESTER_ID="$(deploy_contract "$ATTESTER_WASM" "$NETWORK" "$LAFIYA_RPC_URL" "$LAFIYA_NETWORK_PASSPHRASE" "attester-registry")"
+ATTESTER_ID="$(deploy_contract "$ATTESTER_WASM" "$NETWORK" "$HENBRIDGE_RPC_URL" "$HENBRIDGE_NETWORK_PASSPHRASE" "attester-registry")"
 ATTESTER_ID="$(echo "$ATTESTER_ID" | tr -d '\n' | xargs)" # trim
 echo "    attester-registry ID: $ATTESTER_ID"
 
 # Deploy attestation-registry
-ATTESTATION_ID="$(deploy_contract "$ATTESTATION_WASM" "$NETWORK" "$LAFIYA_RPC_URL" "$LAFIYA_NETWORK_PASSPHRASE" "attestation-registry")"
+ATTESTATION_ID="$(deploy_contract "$ATTESTATION_WASM" "$NETWORK" "$HENBRIDGE_RPC_URL" "$HENBRIDGE_NETWORK_PASSPHRASE" "attestation-registry")"
 ATTESTATION_ID="$(echo "$ATTESTATION_ID" | tr -d '\n' | xargs)"
 echo "    attestation-registry ID: $ATTESTATION_ID"
 
@@ -242,8 +242,8 @@ if [[ "$DRY_RUN" == "true" ]]; then
 else
     stellar contract invoke \
         --id "$ATTESTER_ID" \
-        --rpc-url "$LAFIYA_RPC_URL" \
-        --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+        --rpc-url "$HENBRIDGE_RPC_URL" \
+        --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
         "${STELLAR_SOURCE_ARGS[@]}" \
         -- initialize --admin "$ADMIN_ADDRESS" || {
             echo "Note: initialize may have failed if already initialized (expected on re-deploy)" >&2
@@ -256,8 +256,8 @@ if [[ "$DRY_RUN" == "true" ]]; then
 else
     stellar contract invoke \
         --id "$ATTESTATION_ID" \
-        --rpc-url "$LAFIYA_RPC_URL" \
-        --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+        --rpc-url "$HENBRIDGE_RPC_URL" \
+        --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
         "${STELLAR_SOURCE_ARGS[@]}" \
         -- initialize --admin "$ADMIN_ADDRESS" --attester_registry "$ATTESTER_ID" || {
             echo "Note: initialize may have failed if already initialized" >&2
@@ -277,7 +277,7 @@ echo "     attestation_registry = \"$ATTESTATION_ID\""
 echo ""
 echo "  2. Verify with admin CLI:"
 echo "     ./scripts/admin.sh --network $NETWORK list-attesters"
-echo "     cargo run -p lafiya-cli -- --network $NETWORK config show"
+echo "     cargo run -p henbridge-cli -- --network $NETWORK config show"
 
 # Auto-update config file helper (optional, prints instruction but doesn't auto-edit unless --auto-update flag could be added)
 # For convenience, we offer to update if not dry-run and python available

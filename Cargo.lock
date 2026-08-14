@@ -1098,18 +1098,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "lafiya-cli"
+name = "henbridge-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "lafiya-config",
+ "henbridge-config",
  "serde",
  "toml",
 ]
 
 [[package]]
-name = "lafiya-config"
+name = "henbridge-config"
 version = "0.1.0"
 dependencies = [
  "serde",
