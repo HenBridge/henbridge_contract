@@ -1,12 +1,12 @@
 # Release Process
 
-This document outlines the versioning, changelog, and release workflow for the Lafiya smart contracts.
+This document outlines the versioning, changelog, and release workflow for the HenBridge smart contracts.
 
 ---
 
 ## Versioning Policy
 
-Lafiya smart contracts follow [Semantic Versioning (SemVer)](https://semver.org/).
+HenBridge smart contracts follow [Semantic Versioning (SemVer)](https://semver.org/).
 - **Major (`X.0.0`)**: Released for backward-incompatible changes, such as breaking public API signature updates, storage schema changes that require state migration, or major architectural shifts.
 - **Minor (`0.Y.0`)**: Released for backward-compatible features, such as adding new optional functions, events, or helper modules.
 - **Patch (`0.0.Z`)**: Released for backward-compatible bug fixes, internal optimizations, or documentation updates.
@@ -44,9 +44,9 @@ When a release is ready to be finalized:
 
 ## Testnet & Mainnet Redeployment
 
-Because Soroban smart contracts are immutable once deployed (unless an upgrade path is explicitly programmed), deploying a new version generally requires deploying new WASM bytecode and updating the contract addresses referenced by downstream consumers (such as the frontend app `lafiya-web`).
+Because Soroban smart contracts are immutable once deployed (unless an upgrade path is explicitly programmed), deploying a new version generally requires deploying new WASM bytecode and updating the contract addresses referenced by downstream consumers (such as the frontend app `henbridge-web`).
 
 For details on the redeployment, initialization, and upgrade state migration processes, please cross-reference the **upgrade-runbook issue** on GitHub:
-- [Upgrade Runbook Issue #48 (GitHub)](https://github.com/Lafiya-xyz/Lafiya-contract/issues/48)
+- [Upgrade Runbook Issue #48 (GitHub)](https://github.com/HenBridge/henbridge_contract/issues/48)
 
 Always follow the instructions in the runbook when performing redeployments to ensure that downstream services are not interrupted.

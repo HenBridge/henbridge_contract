@@ -1,4 +1,4 @@
-# Runbook: Upgrading a Lafiya Contract in Production
+# Runbook: Upgrading a HenBridge Contract in Production
 
 **Audience:** release manager / on-call operator performing an on-chain upgrade of
 `attester-registry` or `attestation-registry`.
@@ -71,7 +71,7 @@ script enforces items 4–6 automatically; the rest are on you.
       Record the exact commit SHA: `git rev-parse HEAD`.
 - [ ] **2. Changelog entry.** `CHANGELOG.md` describes the release: what changed,
       whether the **storage schema changed** (`SCHEMA_VERSION` bumped?), and — if so —
-      what `migrate()` will do. If the attestation schema consumed by `lafiya-web`
+      what `migrate()` will do. If the attestation schema consumed by `henbridge-web`
       changes, the cross-repo follow-up is tracked there too (see README → Shared
       Contracts).
 - [ ] **3. Tests green.** From a **clean checkout of the release tag**:
@@ -112,7 +112,7 @@ script enforces items 4–6 automatically; the rest are on you.
       Also note `get_schema_version` output (or that the call failed → legacy),
       and one known live data point (e.g. an allowlisted attester address,
       a known `record_hash` attestation) for the post-upgrade spot checks.
-- [ ] **10. Window & comms.** Maintenance window agreed; `lafiya-web` team notified
+- [ ] **10. Window & comms.** Maintenance window agreed; `henbridge-web` team notified
       if the attestation schema or either contract's function signatures changed
       (they consume these contracts directly).
 

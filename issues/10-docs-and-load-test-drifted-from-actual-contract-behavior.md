@@ -62,7 +62,7 @@ rather than silent.
 **Location:** `docs/architecture/event-indexing.md:5-8`
 
 ```
-5	Lafiya contracts emit the following events on-chain:
+5	HenBridge contracts emit the following events on-chain:
 6	- `AttesterAdded`
 7	- `AttesterRemoved`
 8	- `AttestationRecorded`
@@ -73,12 +73,12 @@ contracts: `AdminTransferred` (both contracts), `Initialized`,
 `AttesterAdded`, `AttesterRemoved`, `AttesterSuspended`,
 `AttesterReinstated`, `AttestationRecorded`, `AttestationRevoked` — the
 spec lists 3 of 8. This is not merely stale documentation: this spec is
-the stated design input for the event-indexer that keeps `lafiya-web`'s
+the stated design input for the event-indexer that keeps `henbridge-web`'s
 displayed verification status synchronized with on-chain state. An
 indexer implemented strictly from this spec would never process
 `AttesterSuspended`, `AttesterReinstated`, or `AttestationRevoked` —
 compounding ARCH-02 (revocation-semantics gap): even a correct on-chain
-fix for that finding would not reach `lafiya-web` if the indexer's own
+fix for that finding would not reach `henbridge-web` if the indexer's own
 design spec never told it those events exist.
 
 **Recommendation:** update the event list to the current set. Consider

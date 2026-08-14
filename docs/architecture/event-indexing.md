@@ -2,7 +2,7 @@
 
 ## Overview
 
-Lafiya contracts currently declare the following on-chain event schemas:
+HenBridge contracts currently declare the following on-chain event schemas:
 
 - `AdminTransferred` (`attester-registry` and `attestation-registry`)
 - `Initialized`
@@ -21,7 +21,7 @@ Lafiya contracts currently declare the following on-chain event schemas:
 during initialization. Indexers must not rely on receiving it unless contract
 behavior is changed in a future release.
 
-These events need to be consumed by the off‑chain services used by **lafiya‑web** to display the verified status in near‑real‑time. This document outlines the design of an **event indexing / webhook service** that polls or streams Soroban events and reconciles them with the existing Supabase‑backed profile data.
+These events need to be consumed by the off‑chain services used by **henbridge‑web** to display the verified status in near‑real‑time. This document outlines the design of an **event indexing / webhook service** that polls or streams Soroban events and reconciles them with the existing Supabase‑backed profile data.
 
 ## Architecture Options
 
@@ -65,7 +65,7 @@ The service will persist the **cursor** (last processed ledger & offset) in Supa
    - Record `AdminTransferred` as a contract-administration audit event; it does not directly change profile verification state.
    - If a future contract release begins publishing `Initialized`, record it as an administration audit event as well.
 3. **Webhook Interface**
-   - Expose a simple HTTP endpoint that **lafiya‑web** can call (or use Supabase realtime listeners) to receive push notifications when a profile changes.
+   - Expose a simple HTTP endpoint that **henbridge‑web** can call (or use Supabase realtime listeners) to receive push notifications when a profile changes.
    - The webhook payload contains the profile ID and the updated verification state.
 
 ## Failure & Replay Handling
@@ -80,16 +80,16 @@ The service will persist the **cursor** (last processed ledger & offset) in Supa
 
 ## Repository Ownership
 
-- The indexer code should live in a **dedicated repository** (e.g., `lafiya-event-indexer`). This keeps the on‑chain contracts repository focused on smart‑contract logic.
+- The indexer code should live in a **dedicated repository** (e.g., `henbridge-event-indexer`). This keeps the on‑chain contracts repository focused on smart‑contract logic.
 - A short‑term plan is to create the repository under the organization and add a `README.md` linking to this design doc.
 - Follow‑up implementation tickets will be created in that repo (e.g., `#1 Implement streaming client`, `#2 Supabase schema migration`).
 
 ## Next Steps
 
-1. **Create repository** `lafiya-event-indexer` (or decide to host within `lafiya‑web` if maintainers prefer).
+1. **Create repository** `henbridge-event-indexer` (or decide to host within `henbridge‑web` if maintainers prefer).
 2. Add the `event-indexing.md` design doc (this file) to the repo's `docs/architecture` folder.
 3. Draft implementation tickets as described above.
-4. Review the design with the maintainer of `lafiya‑web` and update according to feedback.
+4. Review the design with the maintainer of `henbridge‑web` and update according to feedback.
 
 ---
 *This design spec is intended for review only; no code changes are made in this repository.*

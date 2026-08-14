@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory records significant architectural decisions for `Lafiya-contract`.
+This directory records significant architectural decisions for `HenBridge-contract`.
 An ADR explains the context behind a decision, the selected approach, the alternatives
 considered, and the consequences contributors should preserve or revisit.
 

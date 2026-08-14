@@ -2,7 +2,7 @@
 
 - **Status:** Proposed
 - **Date:** 2026-07-23
-- **Deciders:** Lafiya contract maintainers
+- **Deciders:** HenBridge contract maintainers
 
 ## Context
 
@@ -14,7 +14,7 @@ Soroban also supplies `auth_contexts` to `__check_auth`. Those contexts describe
 contracts, functions, arguments, and nested invocations being authorized. The current
 implementation intentionally does not inspect them. A valid signer quorum can therefore
 authorize any invocation represented by the signed payload; the account is a general-purpose
-multisig, not an account whose authority is limited to Lafiya's two registry contracts.
+multisig, not an account whose authority is limited to HenBridge's two registry contracts.
 
 Adding an on-chain allowlist would narrow that authority, but it would also introduce new
 security-sensitive state and policy questions:
@@ -38,7 +38,7 @@ restrict the target contract, function, arguments, asset movement, or nested inv
 This is an explicit interim trust model, not a claim of least-privilege enforcement. Operators
 must apply all of these controls:
 
-1. Use a signer set dedicated to Lafiya registry administration. Do not reuse any signer key or
+1. Use a signer set dedicated to HenBridge registry administration. Do not reuse any signer key or
    the same quorum for treasury, personal, validator, or unrelated application authority.
 2. Do not use the multisig address as a treasury or payment account. Keep only a documented,
    bounded XLM fee reserve needed for near-term administration, and sweep any excess.
@@ -102,5 +102,5 @@ limits, and operator duties are reviewable.
 ## References
 
 - [ADR-0003: Use a single admin address for the pre-alpha contracts](0003-single-admin-initial-model.md)
-- [SEC-03 audit finding](https://github.com/Lafiya-xyz/Lafiya-contract/issues/109)
+- [SEC-03 audit finding](https://github.com/HenBridge/henbridge_contract/issues/109)
 - [`multisig-account::__check_auth`](../../contracts/multisig-account/src/lib.rs)
