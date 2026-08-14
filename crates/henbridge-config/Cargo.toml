@@ -1,10 +1,10 @@
 [package]
-name = "lafiya-config"
+name = "henbridge-config"
 version = "0.1.0"
 edition = "2021"
-description = "Shared loader for Lafiya network config (config/networks.toml)"
+description = "Shared loader for HenBridge network config (config/networks.toml)"
 license = "MIT"
-repository = "https://github.com/Lafiya-xyz/Lafiya-contract"
+repository = "https://github.com/HenBridge/henbridge_contract"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
