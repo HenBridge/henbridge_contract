@@ -5,7 +5,7 @@ set -euo pipefail
 # Exercises deployment, contract initialization, allowlist management, and attestation flow on a local network node.
 
 echo "========================================================"
-echo "  Starting Lafiya Soroban Integration Test Suite"
+echo "  Starting HenBridge Soroban Integration Test Suite"
 echo "========================================================"
 
 # 1. Locate CLI binary (supports 'stellar' or legacy 'soroban' executable)
