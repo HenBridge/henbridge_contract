@@ -27,7 +27,7 @@ see it for the full workflow and rationale.
 
 - [ ] This PR does **not** change contract function signatures or the
       attestation schema — **or** the change is flagged here so
-      `lafiya-web` can be updated in the same change set (see the
+      `henbridge-web` can be updated in the same change set (see the
       README's Shared Contracts section).
 
 ## Notes for reviewers
