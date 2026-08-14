@@ -1,4 +1,4 @@
-# Lafiya - Network Configuration
+# HenBridge - Network Configuration
 # This file centralizes public network parameters and contract IDs.
 # NEVER store private keys, mnemonics, or secrets here.
 # Only public identifiers: RPC URLs, passphrases, contract IDs.
@@ -6,7 +6,7 @@
 # Usage:
 #   - Deploy script: ./scripts/deploy.sh --network testnet
 #   - Admin CLI (bash): ./scripts/admin.sh --network testnet <command>
-#   - Admin CLI (rust): cargo run -p lafiya-cli -- --network testnet <command>
+#   - Admin CLI (rust): cargo run -p henbridge-cli -- --network testnet <command>
 #
 # Contract IDs are empty until deployed. After deployment, update the relevant
 # network section with the deployed contract IDs.

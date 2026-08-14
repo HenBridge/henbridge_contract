@@ -1,6 +1,6 @@
 # Network Configuration
 
-This directory holds the canonical source of truth for Lafiya's Soroban network parameters and contract IDs.
+This directory holds the canonical source of truth for HenBridge's Soroban network parameters and contract IDs.
 
 ## File
 
@@ -54,15 +54,15 @@ All tooling uses `--network <name>` which reads from this config:
 ./scripts/deploy.sh --network testnet
 ./scripts/admin.sh --network testnet list-attesters
 
-cargo run -p lafiya-cli -- --network testnet config show
-cargo run -p lafiya-cli -- --network testnet attester is C...GABC
+cargo run -p henbridge-cli -- --network testnet config show
+cargo run -p henbridge-cli -- --network testnet attester is C...GABC
 ```
 
 ### Loader — shared between deploy and admin
 
 **Rust:**
 ```rust
-use lafiya_config::{load_networks, get_network};
+use henbridge_config::{load_networks, get_network};
 
 let networks = load_networks(None)?; // auto-discovers config/networks.toml
 let testnet = get_network(&networks, "testnet")?;
@@ -74,9 +74,9 @@ println!("RPC: {}", testnet.rpc_url);
 ```bash
 source ./scripts/lib/config.sh
 load_network_config "testnet"
-echo "$LAFIYA_RPC_URL"
-echo "$LAFIYA_NETWORK_PASSPHRASE"
-echo "$LAFIYA_ATTESTER_REGISTRY_ID"
+echo "$HENBRIDGE_RPC_URL"
+echo "$HENBRIDGE_NETWORK_PASSPHRASE"
+echo "$HENBRIDGE_ATTESTER_REGISTRY_ID"
 ```
 
 The shell loader uses `python3` with `tomllib`/`tomli` to parse TOML robustly — no hardcoded values.
