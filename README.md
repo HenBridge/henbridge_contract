@@ -1,404 +1,205 @@
-# HenBridge 🔏
+# HenBridge — On-Chain Trust Layer 🔏
 
 [![Built on Stellar](https://img.shields.io/badge/Built%20on-Stellar-blue?logo=stellar)](https://stellar.org)
-[![Soroban Smart Contracts](https://img.shields.io/badge/Smart%20Contracts-Soroban-purple)](https://soroban.stellar.org)
-[![Status](https://img.shields.io/badge/status-pre--alpha-orange)]()
+[![Soroban](https://img.shields.io/badge/Contracts-Soroban-purple)](https://soroban.stellar.org)
 [![Network](https://img.shields.io/badge/network-testnet-lightgrey)]()
 [![CI](https://github.com/HenBridge/henbridge_contract/actions/workflows/ci.yml/badge.svg)](https://github.com/HenBridge/henbridge_contract/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Docs](https://github.com/HenBridge/henbridge_contract/actions/workflows/docs.yml/badge.svg)](https://henbridge.github.io/henbridge_contract/)
 
-Soroban smart contracts for HenBridge's on-chain trust layer — an attestation registry and attester allowlist that let a health worker's verification of an emergency health record be checked cryptographically, without the underlying health data ever touching the blockchain.
+**The part that makes "verified" mean something.**
 
-**Your vitals, verified. When you can't speak, HenBridge does.**
+These are the Soroban (Rust) contracts under HenBridge — an attester allowlist and an attestation registry that let a health worker's check of an emergency record be verified cryptographically, by anyone, without a single byte of health data ever going on-chain.
 
+> **Where things stand:** Pre-alpha · Stellar **testnet** · not audited · **not a medical device** (see [Disclaimer](#disclaimer)). Contracts implemented and tested; **not yet deployed**.
+> 📖 Docs: <https://henbridge.github.io/henbridge_contract/>
 
+---
 
-> **Status:** Pre-alpha · Stellar **testnet** · not yet audited · not a medical device. See [Disclaimer](#disclaimer).
+## The problem this repo, specifically, solves
 
-## Overview
+Once an emergency record is digitized in [`henbridge_frontend`](https://github.com/HenBridge/henbridge_frontend), a new question appears: *was this ever actually checked by a real health worker, or did someone just type it in?* A "verified" label on a web page is worth nothing if a patient — or an attacker — can set it themselves. Three things go missing without an independent trust layer:
 
-🔗 Documentation: https://henbridge.github.io/henbridge_contract/
+- a **responder can't tell** a checked record from an unchecked one;
+- a **health worker has no portable proof** that ties their verification to a specific record;
+- **CHWs can't be paid** for last-mile work without a transparent, low-fee settlement rail.
 
+This repo supplies the anchor: an on-chain fact that says *attester X verified the record with hash H at time T* — checkable by a responder's scan, forgeable by no one, and revealing nothing.
 
-HenBridge is a free, patient-owned emergency health card: the handful of facts that change how you are treated in an emergency — blood group, genotype, allergies, current medications, chronic conditions — travel with you as a scannable QR code and can be **cryptographically verified** by a health worker so a first responder can trust them on the spot.
+## What is (and isn't) on the chain
 
-This repository (`henbridge-contracts`) contains only the Soroban smart contract layer. The patient-facing web app and the docs/threat-model materials live in separate repos — see [HenBridge Organization](#henbridge-organization) below.
+**On-chain:** record hashes, attester identities, timestamps, and USDC payments.
+**Never on-chain:** any personal health data — it stays encrypted and access-controlled in `henbridge_frontend`'s Supabase store.
 
-### The Problem
+That split is the whole design. It's what makes HenBridge private and regulator-compatible, and it's why Stellar is core rather than cosmetic: Soroban makes a verification tamper-evident and independently checkable *without exposing the data*, and Stellar moves stablecoin micropayments to health workers for sub-cent fees. Remove it and both the trust layer and the incentive engine vanish.
 
-In Nigeria, health records are paper, siloed per facility, and effectively lost the moment a patient moves, is referred, or arrives unconscious. In an emergency, the facts that decide treatment — especially **genotype** (AS/SS sickle-cell status), blood group, and drug allergies — are usually unknown to whoever is treating you, and wrong assumptions cost lives.
+## The three contracts
 
-Even once that data is digitized (in `henbridge-web`), a responder still has no way to know whether a card's contents were ever checked by a real health worker. Without an independent, tamper-evident verification layer:
+Each is its own crate under `contracts/`.
 
-- **Responders can't trust the data** — anyone could edit a public emergency page, so a "verified" label is meaningless unless it's backed by something the patient (or an attacker) can't forge
-- **Health workers have no portable proof of their verification work** — nothing links a specific attester to a specific record across systems
-- **Community health workers (CHWs) can't be paid reliably** for last-mile registration and verification without a transparent, low-fee settlement rail
+### `attester-registry` — who is allowed to attest
 
-### What `henbridge-contracts` Does
-
-- **Attests** — records, on-chain, that a licensed health worker verified a specific patient record at a specific time, without storing any health data itself
-- **Allowlists** — maintains the set of health workers authorized to submit attestations, so a "verified" indicator on a card actually means something
-- **Anchors trust** — gives `henbridge-web` and `henbridge-verifier` a single, independently checkable source of truth that a responder's QR scan can query directly
-
-## Features
-
-- **Attestation registry (Soroban)** — when a licensed health worker verifies a record, an on-chain attestation stores *a hash of the record + the attester's identity + a timestamp* — never the health data itself
-- **Attester allowlist** — only allowlisted attesters can write to the registry, so verification can't be forged by an arbitrary wallet
-- **Hash-only on-chain footprint** — personal data lives in `henbridge-web`'s encrypted, access-controlled off-chain database; Stellar holds only hashes, attestations, and payments
-- **USDC incentive rails** — CHWs are paid micro-amounts on Stellar per verified registration; near-zero fees and stablecoin settlement make last-mile outreach economically viable
-- **Transparent funding** — grant and donor funds flow on-chain into the CHW incentive pool, so every dollar maps to a countable number of verified cards
-
-## Architecture
-
-```mermaid
-graph TB
-    subgraph OffChain["Off-chain (henbridge-web)"]
-        PROFILE[Patient profile — Supabase]
-        CARD[Public emergency page + QR]
-    end
-
-    subgraph Contracts["henbridge-contracts (Soroban)"]
-        ALLOW[Attester allowlist]
-        REG[Attestation registry]
-    end
-
-    subgraph Actors["Actors"]
-        CHW[Community health worker\nlicensed attester]
-        RESP[Responder / clinician]
-        DONOR[Grant / donor funds]
-    end
-
-    PROFILE --> CARD
-    PROFILE -->|hash of record| REG
-    CHW -->|submits attestation| REG
-    ALLOW -->|checks attester is licensed| REG
-    REG -->|hash + attester id + timestamp| CARD
-    RESP -->|scans QR, checks attestation| CARD
-    DONOR -->|USDC incentive pool| CHW
-```
-
-### Core Components
-
-- **`attester-registry`** — the on-chain allowlist of health workers authorized to write attestations
-- **`attestation-registry`** — the on-chain record of which attester verified which record hash, and when; calls into `attester-registry` on every write
-- **`multisig-account`** — a reusable N-of-M Soroban account contract that secures both registries' admin authorization
-
-All three are implemented and unit-tested (target milestone **M1**, see [Roadmap](#roadmap)); none has been deployed to testnet yet.
-
-## Smart Contract Layer
-
-Three Soroban contracts, each in its own crate under `contracts/`.
-
-**Design principle:** no personal health data ever touches the blockchain. Personal data lives in `henbridge-web`'s encrypted, access-controlled off-chain database. Stellar holds only hashes, attestations, and payments. This is what keeps HenBridge both privacy-respecting and regulator-compatible.
-
-### `attester-registry`
+The allowlist. Only addresses it holds can write a valid attestation, so "verified" can't come from an arbitrary wallet.
 
 | Function | Description |
 | --- | --- |
-| `initialize(admin: Address)` | Sets the admin. Callable once. |
-| `propose_admin(new_admin: Address)` | Proposes a new admin. Requires admin auth. |
-| `accept_admin()` | Finalizes the admin transfer. Requires proposed/pending admin auth. Emits `AdminTransferred`. |
-| `add_attester(attester: Address)` | Allowlists `attester`. Requires admin auth. Blocked while paused (`Error::ContractPaused`). Emits `AttesterAdded`. |
-| `remove_attester(attester: Address)` | Removes `attester` from the allowlist. Requires admin auth. Blocked while paused (`Error::ContractPaused`). Emits `AttesterRemoved`. |
-| `is_attester(attester: Address) -> bool` | Whether `attester` is currently allowlisted. Open to any caller, including other contracts. Callable while paused. |
-| `get_attester_info(attester: Address) -> Option<AttesterInfo>` | Returns stored metadata for an allowlisted attester. Callable while paused. |
-| `pause()` | Blocks `add_attester`, `add_attester_with_info`, `remove_attester`, `suspend_attester`, and `reinstate_attester` until unpaused. Requires admin auth. Emits `Paused`. |
-| `unpause()` | Restores normal operation after `pause`. Requires admin auth. Emits `Unpaused`. |
-| `is_paused() -> bool` | Whether the contract is currently paused. Callable while paused. |
+| `initialize(admin: Address)` | One-time setup; sets the admin. |
+| `propose_admin(new_admin)` / `accept_admin()` | Two-step admin handover. Emits `AdminTransferred`. |
+| `add_attester(attester)` | Allowlist an attester (admin; blocked while paused). Emits `AttesterAdded`. |
+| `remove_attester(attester)` | Remove one (admin; blocked while paused). Emits `AttesterRemoved`. |
+| `is_attester(attester) -> bool` | Is this address currently allowlisted? Open to any caller, including other contracts; callable while paused. |
+| `get_attester_info(attester) -> Option<AttesterInfo>` | Stored metadata for an allowlisted attester. |
+| `pause()` / `unpause()` / `is_paused()` | Freeze allowlist mutations in an incident (admin). Emits `Paused` / `Unpaused`. |
 
-### `attestation-registry`
+### `attestation-registry` — the attestations themselves
 
-| Function | Description |
-| --- | --- |
-| `initialize(admin: Address, attester_registry: Address)` | Sets the admin and the `attester-registry` contract to consult. Callable once. |
-| `propose_admin(new_admin: Address)` | Proposes a new admin. Requires admin auth. |
-| `accept_admin()` | Finalizes the admin transfer. Requires proposed/pending admin auth. Emits `AdminTransferred`. |
-| `attest(attester: Address, record_hash: BytesN<32>) -> Attestation` | Requires `attester`'s auth and that `attester` is allowlisted (checked via a cross-contract call to `attester-registry::is_attester`). Stores `{ attester, timestamp }` keyed by `record_hash`, overwriting any prior attestation for that hash. Emits `AttestationRecorded`. |
-| `get_attestation(record_hash: BytesN<32>) -> Option<Attestation>` | Looks up the latest attestation for a record hash. Open to any caller — this is what lets a responder's QR scan verify a card without an external oracle. |
-| `upgrade(new_wasm_hash: BytesN<32>)` | Replaces the contract's code with the already-uploaded wasm blob at `new_wasm_hash`. Requires admin auth; storage is untouched. See [Contract upgrades](#contract-upgrades). |
-| `migrate()` | Runs any pending storage-schema migration, then records the new schema version. Requires admin auth; errors with `MigrationNotRequired` when nothing is pending. |
-| `get_schema_version() -> u32` | Storage schema version recorded for the instance (`0` = legacy pre-versioning or uninitialized). Open to any caller. |
-
-### Contract upgrades
-
-Both contracts are upgradeable by their admin (`upgrade`/`migrate`/`get_schema_version`
-above), with storage schema versioning (`SCHEMA_VERSION` starts at `1`) to make
-schema-changing upgrades explicit and verifiable. **Operators** must follow
-[docs/runbooks/contract-upgrade.md](docs/runbooks/contract-upgrade.md) — it covers the
-pre-upgrade checklist, the `upgrade()` call sequence, verifying the wasm hash against
-reviewed source, and `migrate()` handling for storage-schema-changing upgrades. The
-mechanical steps are automated by [`scripts/upgrade.sh`](scripts/upgrade.sh).
-
-### `multisig-account`
+The record of which attester verified which hash, and when. It consults the allowlist on every write via a cross-contract call.
 
 | Function | Description |
 | --- | --- |
-| `__constructor(signers: Vec<BytesN<32>>, threshold: u32)` | Configures the ed25519 signer set and required N-of-M threshold at deployment. |
-| `__check_auth(...)` | Verifies ordered, unique signatures from configured signers whenever another contract calls `require_auth()` for this account address. |
+| `initialize(admin, attester_registry)` | One-time; sets the admin and the allowlist contract to consult. |
+| `propose_admin(new_admin)` / `accept_admin()` | Two-step admin handover. Emits `AdminTransferred`. |
+| `attest(attester, record_hash: BytesN<32>) -> Attestation` | Requires `attester`'s auth **and** that it's allowlisted (cross-contract `is_attester`). Stores `{ attester, timestamp }` keyed by `record_hash`, overwriting any prior one. Emits `AttestationRecorded`. |
+| `get_attestation(record_hash) -> Option<Attestation>` | The latest attestation for a hash. Open to any caller — this is exactly what a responder's scan reads to verify a card, with no external oracle. |
+| `upgrade(new_wasm_hash)` / `migrate()` / `get_schema_version() -> u32` | Admin-gated code upgrade and storage-schema migration (see below). |
 
-`attestation-registry` calls `attester-registry` through a local `#[contractclient]` trait interface (just `is_attester`), not a direct crate dependency — depending on the whole crate would link `attester-registry`'s own contract implementation into `attestation-registry`'s wasm build too, which is both wasted size and, at least on the Soroban SDK version this repo pins, produces a linker warning from the two contracts' colliding `initialize` exports.
+### `multisig-account` — the admin behind both
 
-## Repository Structure
+A reusable N-of-M Soroban account contract that secures both registries' admin authority.
 
-```
-bindings/
-├── attestation-registry/    # generated TS client for attestation contract
-└── attester-registry/       # generated TS client for allowlist contract
-contracts/
-├── multisig-account/        # reusable N-of-M admin account
-│   ├── Cargo.toml
-│   └── src/
-│       ├── lib.rs
-│       ├── test.rs
-│       └── integration_test.rs
-├── attester-registry/       # allowlist contract
-│   ├── Cargo.toml
-│   └── src/
-│       ├── lib.rs           # initialize, add_attester, remove_attester, is_attester, upgrade, migrate, get_schema_version
-│       └── test.rs
-└── attestation-registry/    # attestation contract
-    ├── Cargo.toml
-    └── src/
-        ├── lib.rs           # initialize, attest, get_attestation, upgrade, migrate, get_schema_version
-        └── test.rs
-docs/
-└── adr/                      # architecture decisions, index, and template
-Cargo.toml                   # workspace + release profile
-Cargo.lock                    # committed for reproducible builds
-CHANGELOG.md                  # release notes incl. schema-impact statements
-rust-toolchain.toml           # pins stable + wasm32v1-none
-Makefile                      # build/test/fmt/clippy/wasm/bindings/check
-.github/workflows/ci.yml      # runs the same checks on push/PR
-LICENSE                       # MIT
-CONTRIBUTING.md               # local dev workflow
-```
+| Function | Description |
+| --- | --- |
+| `__constructor(signers: Vec<BytesN<32>>, threshold: u32)` | Fix the ed25519 signer set and threshold at deploy. |
+| `__check_auth(...)` | Verify ordered, unique signatures whenever a contract calls `require_auth()` for this account. |
 
-## TypeScript Client Bindings
+> **Design note.** `attestation-registry` talks to `attester-registry` through a local `#[contractclient]` trait (just `is_attester`), not a crate dependency — pulling in the whole crate would link the allowlist's own implementation into the attestation wasm, wasting size and (on the pinned SDK) colliding on the two `initialize` exports.
 
-Client bindings are generated from the built WASM contracts using the `stellar-cli` tool. They allow frontend applications (like `henbridge-web`) to interact with the deployed contracts with full type safety.
+## Upgrades & schema versioning
 
-### Generation
+Both registries are admin-upgradeable (`upgrade` / `migrate` / `get_schema_version`), with an explicit `SCHEMA_VERSION` (starting at `1`) so schema-changing upgrades are visible and verifiable. Operators follow [`docs/runbooks/contract-upgrade.md`](docs/runbooks/contract-upgrade.md) — pre-upgrade checklist, the `upgrade()` sequence, verifying the wasm hash against reviewed source, and `migrate()` for schema changes — automated by [`scripts/upgrade.sh`](scripts/upgrade.sh).
 
-To generate the bindings, run:
+## Admin setup (multisig-first)
 
-```bash
-make bindings
-```
-
-This builds the contracts and outputs TypeScript packages to the `bindings/` directory:
-- `bindings/attester-registry`
-- `bindings/attestation-registry`
-
-To compile the generated packages:
-
-```bash
-cd bindings/attester-registry && npm install && npm run build
-cd ../attestation-registry && npm install && npm run build
-```
-
-### Publishing & Consumption
-
-The generated bindings are committed directly to this repository under the `bindings/` directory. `henbridge-web` (or any other consumer) can consume them via:
-- Direct git path dependency in `package.json` pointing to the repo or subdirectory.
-- A git submodule in the consuming project.
-- Alternatively, CI/CD can be configured to publish these directories as packages to the `@henbridge` npm organization.
-
-
-## Tech Stack
-
-- **On-chain:** Soroban smart contracts (Rust), `soroban-sdk` 25.x, on Stellar; USDC on Stellar for CHW payments
-- **Network:** Stellar testnet first
-- **Standards informing design:** W3C Verifiable Credentials data model (issuer/holder/verifier roles, hash-based attestation)
-
-## Getting Started
-
-```bash
-git clone https://github.com/HenBridge/henbridge_contract.git
-cd HenBridge-contract
-rustup target add wasm32v1-none   # also picked up automatically via rust-toolchain.toml
-make check                        # fmt-check + clippy + test + wasm build
-```
-
-### Recommended admin setup
-
-Deploy `multisig-account` first with the ed25519 public keys of all M administrators and the required threshold N. For example, three signer keys with a threshold of two creates a 2-of-3 admin account. Keep the signer keys in separate custody and order submitted signatures by public key.
-
-Use the deployed multisig contract address as `admin` when initializing both registries:
+Deploy `multisig-account` first with every administrator's ed25519 key and the threshold — e.g. three keys at threshold two is a 2-of-3. Then use its address as `admin`:
 
 ```text
 attester-registry.initialize(multisig_address)
 attestation-registry.initialize(multisig_address, attester_registry_address)
 ```
 
-The registry contracts need no multisig-specific logic. Their existing `admin.require_auth()` calls invoke the account contract's `__check_auth`, so an admin operation succeeds only when its authorization entry contains at least N valid signatures.
+The registries need no multisig-specific code: their `admin.require_auth()` calls invoke the account's `__check_auth`, so an admin op only lands with ≥ N valid, correctly-ordered signatures.
 
-> **Authorization scope:** `multisig-account` is a general-purpose N-of-M account. It does not
-> inspect Soroban's authorization contexts or restrict the contract, function, arguments, asset
-> movement, or nested invocations that a valid quorum may approve. It is not a
-> registry-scoped or least-privileged account.
+> ⚠️ **`multisig-account` is a general-purpose N-of-M account.** It does **not** inspect authorization contexts or restrict which contract, function, arguments, asset movements, or sub-invocations a valid quorum may approve. For pre-alpha: dedicate a signer set to registry administration only (never treasury or unrelated authority), keep only a bounded XLM fee reserve, and have **every signer decode and independently verify the full authorization tree** before signing — a payload hash or a label is not enough. Do not let it administer a mainnet deployment until its unscoped authority is explicitly accepted or replaced by an on-chain scoping policy. See [ADR-0007](docs/adr/0007-unscoped-multisig-authorization.md).
 
-For pre-alpha use, assign a signer set dedicated exclusively to HenBridge registry administration;
-do not reuse those keys or that quorum for treasury or unrelated authority. Do not use the
-multisig address as a treasury: keep only the bounded XLM fee reserve recorded for the deployment
-and sweep any excess. Before signing, each signer must inspect the decoded authorization tree
-and independently verify the registry address, function, arguments, asset movements, and
-sub-invocations. A payload hash or transaction label alone is not sufficient.
+## Config & operator CLI
 
-The deployment record must contain the signer-set identifier (never secret keys), threshold,
-approved registry addresses, fee-reserve ceiling, and balance-sweep and authorization-review
-procedures. This account must not administer a production or mainnet deployment until its
-unscoped authority is explicitly accepted for that environment or replaced by an on-chain
-scoping policy. See
-[ADR-0007](docs/adr/0007-unscoped-multisig-authorization.md) for the decision and residual risks.
+Two support crates under `crates/` carry the off-contract tooling:
 
-Not yet deployed to testnet — deployment scripts and instructions land with the rest of milestone M1.
+- **`henbridge-config`** — resolves shared settings (network, RPC, registry ids) from environment or a config file.
+- **`henbridge-cli`** — an operator CLI over the deployed contracts.
 
-## Privacy & Compliance
+Configuration is read from `HENBRIDGE_*` environment variables — `HENBRIDGE_RPC_URL`, `HENBRIDGE_NETWORK_PASSPHRASE`, `HENBRIDGE_NETWORK`, `HENBRIDGE_ATTESTER_REGISTRY_ID`, `HENBRIDGE_ATTESTATION_REGISTRY_ID`, `HENBRIDGE_CONFIG_PATH` — so the same tooling points at testnet or, later, mainnet without code changes.
 
-- **Nigeria Data Protection Act (2023)** governs all personal data held across the HenBridge project. Consent, encryption, and minimal disclosure are designed in from day one.
-- No health data is ever written on-chain — only non-reversible hashes and attestations, by design (see [Smart Contract Layer](#smart-contract-layer)).
+## Build & test
+
+```bash
+git clone https://github.com/HenBridge/henbridge_contract.git
+cd henbridge_contract
+rustup target add wasm32v1-none      # also declared in rust-toolchain.toml
+make check                            # fmt-check + clippy + test + wasm build
+make test                             # unit tests (in-process soroban-sdk testutils)
+make test-integration                 # deployed-wasm tests on a local Soroban network
+```
+
+The suites cover: initialize / double-initialize rejection · admin-gated writes and auth-entry mismatch rejection · `is_attester` lookups · `attest` by allowlisted vs. non-allowlisted callers and before init · `get_attestation` including unknown hashes and re-attestation overwrite · emitted events · multisig threshold, signer validation, signature ordering, invalid-signature rejection · multisig-backed init and admin ops through the account-authorization path.
+
+## TypeScript bindings
+
+`make bindings` builds the contracts and emits typed clients to `bindings/attester-registry` and `bindings/attestation-registry` (via `stellar-cli`). They're committed to the repo; `henbridge_frontend` can consume them as a git path/submodule dependency, or CI can publish them under the `@henbridge` npm scope.
+
+## Layout
+
+```
+henbridge_contract/
+├── contracts/
+│   ├── attester-registry/       allowlist: who may attest
+│   ├── attestation-registry/    the attestations (calls the allowlist on write)
+│   └── multisig-account/        reusable N-of-M admin account
+├── crates/
+│   ├── henbridge-config/        shared network/registry config from env or file
+│   └── henbridge-cli/           operator CLI over the contracts
+├── bindings/                    generated TypeScript clients
+├── docs/                        ADRs, runbooks, architecture notes
+├── scripts/                     deploy · admin · upgrade · smoke-test
+├── tests/integration/           deployed-wasm integration suite
+├── Cargo.toml · Cargo.lock      workspace + pinned deps (committed for reproducible builds)
+├── rust-toolchain.toml          stable + wasm32v1-none
+└── Makefile                     check · test · wasm · bindings
+```
+
+## Stack
+
+- **On-chain:** Soroban smart contracts in Rust; `soroban-sdk` version pinned in `Cargo.toml`. USDC on Stellar for CHW payouts.
+- **Network:** Stellar testnet first.
+- **Standard informing the design:** W3C Verifiable Credentials (issuer / holder / verifier roles, hash-based attestation).
 
 ## Roadmap
 
-- **M0 — Public card (testnet).** One patient can create a profile and expose a working read-only emergency page via QR. *(`henbridge-web`)*
-- **M1 — Attestation.** Soroban registry lets an allowlisted attester verify a record; the card shows a verified indicator. **← this repo** — contracts implemented and unit-tested; testnet deployment and `henbridge-web` integration still open.
-- **M2 — Incentives.** USDC-on-Stellar payout to a CHW per verified registration.
-- **M3 — Pilot.** Small supervised field pilot; measure verified cards created and scan events.
-- **M4 — Mainnet + funding.** Launch on mainnet; open transparent funding pool.
+- **M0 — Public card (testnet).** Profile + QR emergency page — owned by `henbridge_frontend`.
+- **M1 — Attestation. ← this repo.** Allowlisted attester verifies a record; card shows a verified indicator. *Contracts implemented and unit-tested; testnet deploy + integration still open.*
+- **M2 — Incentives.** USDC-on-Stellar payout per verified registration.
+- **M3 — Pilot.** Supervised field pilot; measure verified cards and scans.
+- **M4 — Mainnet + funding.** Mainnet deploy; open the transparent funding pool.
 
-## Why This Matters for the Stellar Ecosystem
+## The HenBridge org
 
-Stellar/Soroban does two things HenBridge genuinely needs that a plain web app cannot: it makes verification **tamper-evident and independently checkable** without exposing data, and it moves **stablecoin micropayments** to health workers cheaply and across borders. Remove Stellar and the trust layer and the incentive engine both disappear — Soroban is core to HenBridge, not shoehorned in.
+Four repos. A change to the attestation shape or a contract signature here is a change in the consuming repos too — flag it.
 
-## Testing
-
-```bash
-make test              # Unit tests (in-process soroban-sdk testutils)
-make test-integration  # Integration tests (deployed WASMs on local Soroban network)
-```
-
-Covers, per contract (see `contracts/*/src/test.rs` and `tests/integration/run.sh`):
-
-- ✅ Initialize / double-initialize rejection
-- ✅ Admin-gated writes (`add_attester`, `remove_attester`), including rejection when the caller's auth entry doesn't match
-- ✅ Allowlist lookups (`is_attester`)
-- ✅ `attest` by an allowlisted vs. non-allowlisted attester, and before the contract is initialized
-- ✅ `get_attestation` lookups, including unknown hashes and re-attestation overwrite
-- ✅ Emitted events (`AttesterAdded`, `AttesterRemoved`, `AttestationRecorded`)
-- ✅ Multisig threshold, signer validation, signature ordering, and invalid-signature rejection
-- ✅ Multisig-backed initialization and admin operations through the contract-account authorization path
-
-
-## Dependencies
-
-- Rust (stable) + `wasm32v1-none` target — see `rust-toolchain.toml`
-- `soroban-sdk` 25.x
-- Stellar testnet account and USDC trustline, once deployment scripts land
-
-## License
-
-[MIT](LICENSE).
-
-## Contributing
-
-Contributions are welcome! As an open-source Digital Public Good, we rely on community contributions to build and maintain HenBridge.
-
-Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for our detailed guidelines, which cover:
-- Local development environment setup
-- Branching and commit conventions (Conventional Commits)
-- Cross-repo shared-contract coordination guidelines
-- Database/Supabase migration details
-- Smart contract quality standards and testing checklist
-
-This repository specifically needs collaborators with experience in:
-- Stellar / Soroban smart contract development (Rust)
-- On-chain data modeling and attestation/verifiable-credential design
-
-## HenBridge Organization
-
-This repo is one of five in the `henbridge` organization.
-
-| Repo                  | URL | Purpose                                                                                              | Priority                 |
-| ---------------------- | --- | ----------------------------------------------------------------------------------------------------- | ------------------------- |
-| `henbridge-web`           | [github.com/HenBridge/henbridge_frontend](https://github.com/HenBridge/henbridge_frontend) | Patient + responder web app (Next.js). Public emergency page, authed profile editor, QR generation.    | Build first               |
-| **`henbridge-contracts`** _(this repo)_ | [github.com/HenBridge/henbridge_contract](https://github.com/HenBridge/henbridge_contract) | Soroban smart contracts (Rust): attestation registry + attester allowlist. Testnet first. | **Build next**            |
-| `henbridge-docs`          | [github.com/HenBridge/henbridge_docs](https://github.com/HenBridge/henbridge_docs) | Concept note, data model, threat model, privacy design, funding/DPG materials, references.             | Start now (lightweight)   |
-| `.github`              | [github.com/HenBridge/.github](https://github.com/HenBridge/.github) | Organization profile README and contribution guidelines.                                               | Start now                 |
-| `henbridge-verifier`      | [github.com/HenBridge/henbridge_backend](https://github.com/HenBridge/henbridge_backend) | CHW verification tool. Begins as a route inside `henbridge-web`; split out only if it grows.               | Later                     |
-
-> Resist scaffolding empty repos. Two working repos (`henbridge-web`, `henbridge-contracts`) beat five half-built ones. Build one honest milestone at a time.
-
-### Data Flow
+| Repo | What it holds |
+| --- | --- |
+| [`henbridge_frontend`](https://github.com/HenBridge/henbridge_frontend) | Patient + responder web app — public card, profile editor, QR, offline |
+| [`henbridge_backend`](https://github.com/HenBridge/henbridge_backend) | CHW service — register records, submit attestations, queue USDC payouts |
+| **`henbridge_contract`** *(this repo)* | Soroban (Rust): attester allowlist + attestation registry + multisig |
+| [`henbridge_docs`](https://github.com/HenBridge/henbridge_docs) | Concept note, data model, threat model, privacy design, ADRs |
 
 ```
-henbridge-web  ──(record hash)──▶  henbridge-contracts
-                                       │
-        CHW attests ──(licensed?)──▶  │  (attester allowlist check)
-                                       ▼
-                          attestation: hash + attester id + timestamp
-                                       │
-                                       ▼
-                              henbridge-web public emergency page
-                                       │
-                                       ▼
-                         responder scans QR, sees verified indicator
+henbridge_frontend ─(record hash)─▶ henbridge_contract ◀─(attest, if allowlisted)─ henbridge_backend
+                                            │
+                              hash + attester id + timestamp
+                                            │
+                                            ▼
+                     verified indicator on the public card ─▶ responder scans, trusts
 ```
 
-1. **`henbridge-web`** holds the patient's private profile and computes a hash of the emergency-relevant record.
-2. A licensed CHW, verified against the **attester allowlist**, submits an attestation to the **attestation registry** in this repo — a hash, the attester's identity, and a timestamp, never the health data itself.
-3. **`henbridge-web`**'s public emergency page reads the attestation to show a verified indicator; a responder scanning the QR can independently trust it without an external oracle.
-4. **`henbridge-verifier`** (later) gives CHWs a dedicated flow for step 2 as it splits out of `henbridge-web`.
+**Shared contract:** the attestation shape — `record_hash: BytesN<32>` · `attester: Address` · `timestamp: u64` — is defined by the Rust structs here and consumed by `henbridge_frontend`. Change a field, type, or hashing scheme here and update the consumer in the same change set. Because the contracts aren't deployed yet, don't assume a live contract id or deploy scripts exist — check the layout first.
 
-### Shared Contracts (must stay in sync across repos)
+## Privacy & compliance
 
-**Attestation schema** — a hash of the record + the attester's identity + a timestamp, defined by the contracts in this repo and consumed by `henbridge-web`'s public emergency page. If the shape of an attestation changes here, `henbridge-web`'s verification-display logic must be updated in the same change set (or a tracked follow-up opened there).
-
-### Conventions for AI Agents
-
-- Treat this section as the source of truth for **cross-repo** contracts. Each repo's own README covers repo-local conventions.
-- The contracts are implemented and unit-tested but not yet deployed to testnet — don't assume a live contract ID or deployment scripts exist; check [Repository Structure](#repository-structure) before referencing a path.
-- When a change here affects the attestation schema or either contract's function signatures, call it out explicitly so `henbridge-web` can be updated to match.
-
-## Support
-
-For issues and questions:
-
-- GitHub Issues: [Create an issue](https://github.com/HenBridge/henbridge_contract/issues)
-
-## Disclaimer
-
-HenBridge is an information aid, **not a medical device** and **not a substitute for professional medical judgment**. Verified indicators reflect that a record was attested by a registered health worker; they are not a clinical guarantee. Treatment decisions remain the responsibility of the attending clinician.
+- **Nigeria Data Protection Act (2023)** governs all personal data across HenBridge — consent, encryption, minimal disclosure by design.
+- No health data is ever written on-chain — only non-reversible hashes and attestations, by construction.
 
 ## Security
 
-Found a vulnerability? Please don't open a public issue — see [SECURITY.md](SECURITY.md) for how to report it privately.
+Found a vulnerability? Don't open a public issue — see [SECURITY.md](SECURITY.md) for private reporting.
 
-## References
+## Contributing
 
-These works directly informed HenBridge's design and are the intended reading for contributors, particularly the attestation/trust-layer work in this repo.
+Guidelines (dev setup, Conventional Commits, cross-repo coordination, contract quality + testing checklist) are in [CONTRIBUTING.md](CONTRIBUTING.md). This repo especially wants contributors fluent in Soroban/Rust and in attestation / verifiable-credential design.
 
-**Books**
+## License
 
-- Preukschat, A., & Reed, D. (2021). *Self-Sovereign Identity: Decentralized Digital Identity and Verifiable Credentials*. Manning. — The blueprint for HenBridge's attestation layer: issuer/holder/verifier roles, verifiable credentials, hash-based attestation, key management, and offline verification.
-- Kleppmann, M. (2017). *Designing Data-Intensive Applications*. O'Reilly. — Informs the boundary between what lives in the off-chain database and what is anchored on-chain.
-- Martin, R. C. (2017). *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Prentice Hall. — Discipline for an AI-assisted codebase: clear boundaries so the contracts, app, and data layer stay independently maintainable.
-- Shortliffe, E. H., & Cimino, J. J. (Eds.). (2021). *Biomedical Informatics: Computer Applications in Health Care and Biomedicine* (5th ed.). Springer. — Grounds which fields are decision-relevant in an emergency, informing what a record hash here actually represents.
-- Toyama, K. (2015). *Geek Heresy: Rescuing Social Change from the Cult of Technology*. PublicAffairs. — Keeps the project honest: the attestation layer amplifies trust in community health workers rather than replacing them.
+**MIT** — see [LICENSE](LICENSE).
 
-**Standards & documentation**
+## Disclaimer
 
-- Stellar Development Foundation — Stellar and Soroban developer documentation.
-- W3C — Verifiable Credentials Data Model.
-- Nigeria Data Protection Act (2023) — Nigeria Data Protection Commission.
-- Digital Public Goods Alliance — DPG Standard.
+HenBridge is an information aid — **not a medical device**, not a substitute for professional judgment. A verified indicator means a registered health worker attested the record; it is not a clinical guarantee. The attending clinician owns the treatment decision.
 
 ---
 
 <div align="center">
 
-**HenBridge** — Your vitals, verified.
+**HenBridge** — trust anchored on Stellar, health data kept off it.
 
-_Built for the Stellar ecosystem. Open source. Community owned._
+_Built on Stellar · open source · community-owned._
 
 </div>
