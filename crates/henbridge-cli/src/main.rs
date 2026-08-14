@@ -1,16 +1,16 @@
-//! Lafiya Admin CLI (Rust)
+//! HenBridge Admin CLI (Rust)
 //! Reads config/networks.toml for RPC, passphrase, contract IDs.
 //! Switching networks is one flag: --network testnet
 //! Secrets are never read from config, only via stellar CLI identities or env.
 
 use clap::{Parser, Subcommand};
-use lafiya_config::{get_network, load_networks};
+use henbridge_config::{get_network, load_networks};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "lafiya-cli",
-    about = "Lafiya Admin CLI - uses config/networks.toml"
+    name = "henbridge-cli",
+    about = "HenBridge Admin CLI - uses config/networks.toml"
 )]
 struct Cli {
     /// Network name as defined in config/networks.toml (e.g. testnet, futurenet, mainnet, local)
@@ -106,7 +106,7 @@ fn main() -> anyhow::Result<()> {
     {
         println!(
             "Available networks (from {:?}):",
-            lafiya_config::default_config_path()
+            henbridge_config::default_config_path()
         );
         for name in networks.keys() {
             println!("  - {}", name);
@@ -114,7 +114,7 @@ fn main() -> anyhow::Result<()> {
         if let Some(p) = &cli.config {
             println!("Config path (explicit): {:?}", p);
         } else {
-            let default = lafiya_config::default_config_path();
+            let default = henbridge_config::default_config_path();
             println!("Config path (auto): {:?}", default);
         }
         return Ok(());
@@ -126,7 +126,7 @@ fn main() -> anyhow::Result<()> {
         Commands::Config { sub } => {
             match sub {
                 ConfigSub::Show => {
-                    let (path, _) = lafiya_config::load_network_config::<PathBuf>(
+                    let (path, _) = henbridge_config::load_network_config::<PathBuf>(
                         &cli.network,
                         cli.config.clone(),
                     )?;
@@ -156,21 +156,21 @@ fn main() -> anyhow::Result<()> {
                 ConfigSub::List => {} // handled above
                 ConfigSub::Env => {
                     println!(
-                        "# Source this with: eval $(lafiya-cli --network {} config env)",
+                        "# Source this with: eval $(henbridge-cli --network {} config env)",
                         cli.network
                     );
-                    println!("export LAFIYA_NETWORK={}", cli.network);
-                    println!("export LAFIYA_RPC_URL={}", network_cfg.rpc_url);
+                    println!("export HENBRIDGE_NETWORK={}", cli.network);
+                    println!("export HENBRIDGE_RPC_URL={}", network_cfg.rpc_url);
                     println!(
-                        "export LAFIYA_NETWORK_PASSPHRASE={:?}",
+                        "export HENBRIDGE_NETWORK_PASSPHRASE={:?}",
                         network_cfg.network_passphrase
                     );
                     println!(
-                        "export LAFIYA_ATTESTER_REGISTRY_ID={}",
+                        "export HENBRIDGE_ATTESTER_REGISTRY_ID={}",
                         network_cfg.contracts.attester_registry
                     );
                     println!(
-                        "export LAFIYA_ATTESTATION_REGISTRY_ID={}",
+                        "export HENBRIDGE_ATTESTATION_REGISTRY_ID={}",
                         network_cfg.contracts.attestation_registry
                     );
                 }

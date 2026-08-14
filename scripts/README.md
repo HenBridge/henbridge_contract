@@ -1,4 +1,4 @@
-# Lafiya Scripts
+# HenBridge Scripts
 
 This directory contains deployment and admin tooling that **all read from `config/networks.toml`** — no hardcoded RPC URLs or passphrases.
 
@@ -25,21 +25,21 @@ attestation_registry = "C..."
 ```bash
 source ./scripts/lib/config.sh
 load_network_config "testnet"        # reads config/networks.toml
-echo $LAFIYA_RPC_URL
-echo $LAFIYA_NETWORK_PASSPHRASE
+echo $HENBRIDGE_RPC_URL
+echo $HENBRIDGE_NETWORK_PASSPHRASE
 ```
 
 Both `deploy.sh` and `admin.sh` source this file — zero duplication, zero hardcoded values.
 
-**Rust loader:** `crates/lafiya-config` does the same for Rust tooling:
+**Rust loader:** `crates/henbridge-config` does the same for Rust tooling:
 
 ```rust
-use lafiya_config::{load_networks, get_network};
+use henbridge_config::{load_networks, get_network};
 let nets = load_networks(None)?;
 let cfg = get_network(&nets, "testnet")?;
 ```
 
-`crates/lafiya-cli` uses this Rust loader — so shell and Rust stacks share identical config.
+`crates/henbridge-cli` uses this Rust loader — so shell and Rust stacks share identical config.
 
 ## Switching Networks — One Flag
 
@@ -53,19 +53,19 @@ let cfg = get_network(&nets, "testnet")?;
 ./scripts/admin.sh --network testnet attester is GABC...
 ./scripts/admin.sh --network testnet --source admin attester add GABC...
 
-cargo run -p lafiya-cli -- --network testnet config show
-cargo run -p lafiya-cli -- --network testnet attester is GABC...
-cargo run -p lafiya-cli -- --network local config env
+cargo run -p henbridge-cli -- --network testnet config show
+cargo run -p henbridge-cli -- --network testnet attester is GABC...
+cargo run -p henbridge-cli -- --network local config env
 ```
 
 ## Scripts
 
 | Script | Purpose | Config Usage |
 |--------|---------|--------------|
-| `lib/config.sh` | Shared loader, parses TOML via python3 `tomllib`/`tomli`, exports `LAFIYA_*` vars | Source of truth |
+| `lib/config.sh` | Shared loader, parses TOML via python3 `tomllib`/`tomli`, exports `HENBRIDGE_*` vars | Source of truth |
 | `deploy.sh` | Builds WASM and deploys both contracts via `stellar contract deploy`, then `initialize`, updates `networks.toml` | `--network` flag, no hardcoded RPC/passphrase |
 | `admin.sh` | Bash admin CLI: attester allowlist mgmt, attestation queries | `--network` flag, same loader |
-| `crates/lafiya-cli` | Rust admin CLI (preferred, more robust) | Uses `lafiya-config` crate reading same TOML |
+| `crates/henbridge-cli` | Rust admin CLI (preferred, more robust) | Uses `henbridge-config` crate reading same TOML |
 
 ### deploy.sh
 
@@ -76,7 +76,7 @@ cargo run -p lafiya-cli -- --network local config env
 ```
 
 - Builds `wasm32v1-none` artifacts
-- Deploys via `stellar contract deploy --rpc-url $LAFIYA_RPC_URL --network-passphrase ...`
+- Deploys via `stellar contract deploy --rpc-url $HENBRIDGE_RPC_URL --network-passphrase ...`
 - Initializes with admin and links contracts
 - Prompts to update `config/networks.toml` with new IDs
 
@@ -94,16 +94,16 @@ cargo run -p lafiya-cli -- --network local config env
 ### Rust CLI
 
 ```bash
-cargo run -p lafiya-cli -- --network testnet config show
-cargo run -p lafiya-cli -- config list
-cargo run -p lafiya-cli -- --network testnet config env
-cargo run -p lafiya-cli -- --network testnet attester is G...
+cargo run -p henbridge-cli -- --network testnet config show
+cargo run -p henbridge-cli -- config list
+cargo run -p henbridge-cli -- --network testnet config env
+cargo run -p henbridge-cli -- --network testnet attester is G...
 ```
 
 Produces shell-friendly env output:
 
 ```bash
-eval $(cargo run -p lafiya-cli -- --network testnet config env)
+eval $(cargo run -p henbridge-cli -- --network testnet config env)
 ```
 
 ## Adding a New Network
@@ -124,12 +124,12 @@ No code changes needed — all tooling picks it up via `--network mytest`.
 
 ## CI
 
-`cargo test -p lafiya-config` validates TOML parsing, missing network errors, and ensures no secret fields exist.
+`cargo test -p henbridge-config` validates TOML parsing, missing network errors, and ensures no secret fields exist.
 
 Makefile targets:
 
 ```bash
-make config-check   # validates networks.toml, runs lafiya-config tests
+make config-check   # validates networks.toml, runs henbridge-config tests
 make config-list    # lists networks
 make deploy NETWORK=testnet
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lafiya - Admin CLI (bash version)
+# HenBridge - Admin CLI (bash version)
 # Provides attester allowlist management and attestation queries,
 # using config/networks.toml for network resolution.
 #
@@ -31,7 +31,7 @@ SOURCE_ACCOUNT="${STELLAR_ACCOUNT:-}"
 
 usage() {
     cat <<EOF
-Lafiya Admin CLI (bash)
+HenBridge Admin CLI (bash)
 
 Usage: $0 --network <name> <command> [args] [options]
 
@@ -156,7 +156,7 @@ case "$COMMAND" in
         ;;
 
     attester)
-        require_contract_id "attester-registry" "$LAFIYA_ATTESTER_REGISTRY_ID"
+        require_contract_id "attester-registry" "$HENBRIDGE_ATTESTER_REGISTRY_ID"
         check_stellar_cli
         case "$SUBCOMMAND" in
             is)
@@ -164,11 +164,11 @@ case "$COMMAND" in
                     echo "Usage: $0 --network $NETWORK attester is <address>" >&2
                     exit 1
                 fi
-                echo "==> Checking is_attester for $ARG1 on $LAFIYA_ATTESTER_REGISTRY_ID"
+                echo "==> Checking is_attester for $ARG1 on $HENBRIDGE_ATTESTER_REGISTRY_ID"
                 stellar contract invoke \
-                    --id "$LAFIYA_ATTESTER_REGISTRY_ID" \
-                    --rpc-url "$LAFIYA_RPC_URL" \
-                    --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+                    --id "$HENBRIDGE_ATTESTER_REGISTRY_ID" \
+                    --rpc-url "$HENBRIDGE_RPC_URL" \
+                    --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
                     -- is_attester --attester "$ARG1"
                 ;;
             add)
@@ -178,9 +178,9 @@ case "$COMMAND" in
                 fi
                 echo "==> Adding attester $ARG1 (admin auth via ${SOURCE_ACCOUNT:-default})"
                 stellar contract invoke \
-                    --id "$LAFIYA_ATTESTER_REGISTRY_ID" \
-                    --rpc-url "$LAFIYA_RPC_URL" \
-                    --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+                    --id "$HENBRIDGE_ATTESTER_REGISTRY_ID" \
+                    --rpc-url "$HENBRIDGE_RPC_URL" \
+                    --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
                     "${stellar_source_args[@]}" \
                     -- add_attester --attester "$ARG1"
                 ;;
@@ -191,16 +191,16 @@ case "$COMMAND" in
                 fi
                 echo "==> Removing attester $ARG1"
                 stellar contract invoke \
-                    --id "$LAFIYA_ATTESTER_REGISTRY_ID" \
-                    --rpc-url "$LAFIYA_RPC_URL" \
-                    --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+                    --id "$HENBRIDGE_ATTESTER_REGISTRY_ID" \
+                    --rpc-url "$HENBRIDGE_RPC_URL" \
+                    --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
                     "${stellar_source_args[@]}" \
                     -- remove_attester --attester "$ARG1"
                 ;;
             list)
                 echo "Note: attester-registry does not support enumeration on-chain." >&2
                 echo "You need to track attesters off-chain or via events." >&2
-                echo "Contract ID: $LAFIYA_ATTESTER_REGISTRY_ID"
+                echo "Contract ID: $HENBRIDGE_ATTESTER_REGISTRY_ID"
                 echo "Use 'stellar contract invoke ... is_attester' to check individually."
                 ;;
             *)
@@ -212,7 +212,7 @@ case "$COMMAND" in
         ;;
 
     attestation)
-        require_contract_id "attestation-registry" "$LAFIYA_ATTESTATION_REGISTRY_ID"
+        require_contract_id "attestation-registry" "$HENBRIDGE_ATTESTATION_REGISTRY_ID"
         check_stellar_cli
         case "$SUBCOMMAND" in
             get)
@@ -221,11 +221,11 @@ case "$COMMAND" in
                     exit 1
                 fi
                 # ARG1 is hex string for BytesN<32>
-                echo "==> Getting attestation for hash $ARG1 on $LAFIYA_ATTESTATION_REGISTRY_ID"
+                echo "==> Getting attestation for hash $ARG1 on $HENBRIDGE_ATTESTATION_REGISTRY_ID"
                 stellar contract invoke \
-                    --id "$LAFIYA_ATTESTATION_REGISTRY_ID" \
-                    --rpc-url "$LAFIYA_RPC_URL" \
-                    --network-passphrase "$LAFIYA_NETWORK_PASSPHRASE" \
+                    --id "$HENBRIDGE_ATTESTATION_REGISTRY_ID" \
+                    --rpc-url "$HENBRIDGE_RPC_URL" \
+                    --network-passphrase "$HENBRIDGE_NETWORK_PASSPHRASE" \
                     -- get_attestation --record_hash "$ARG1"
                 ;;
             *)

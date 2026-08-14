@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Smoke test for Lafiya contract deployment
+# Smoke test for HenBridge contract deployment
 # Requires the following environment variables:
 #   ATT_REGISTRY        - Attestation Registry contract ID
 #   ATTESTER_REGISTRY   - Attester Registry contract ID

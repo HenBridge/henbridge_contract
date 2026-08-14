@@ -16,10 +16,10 @@
 
 ## Cross-Repo & Shared-Contract Impact
 - [ ] **Does this PR change a shared contract interface?** (e.g., attestation schema, public contract function signatures, events emitted)
-  - If yes, please describe the impact and link the corresponding issue/PR in [lafiya-web](https://github.com/Lafiya-xyz/lafiya-web):
+  - If yes, please describe the impact and link the corresponding issue/PR in [henbridge-web](https://github.com/HenBridge/henbridge_frontend):
   - *Impact detail:* 
 
 - [ ] **Does this PR require a database/Supabase migration?**
   - If yes, verify that:
-    - [ ] The migration SQL is written in `lafiya-web`.
-    - [ ] Hand-authored types in `lafiya-web/lib/supabase/types.ts` have been updated manually.
+    - [ ] The migration SQL is written in `henbridge-web`.
+    - [ ] Hand-authored types in `henbridge-web/lib/supabase/types.ts` have been updated manually.

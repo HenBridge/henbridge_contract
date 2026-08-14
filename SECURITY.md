@@ -1,6 +1,6 @@
 # Security Policy
 
-Lafiya's contracts are **pre-alpha, unaudited, and targeted at Stellar
+HenBridge's contracts are **pre-alpha, unaudited, and targeted at Stellar
 testnet** — but they anchor a health-adjacent trust layer, so
 vulnerabilities matter even before mainnet. Please report them
 responsibly.
@@ -52,9 +52,9 @@ Out of scope:
 
 - Vulnerabilities in the Stellar network, the Soroban SDK, or Rust
   toolchain themselves — report those upstream.
-- The `lafiya-web` app and other sibling repositories (they have, or
+- The `henbridge-web` app and other sibling repositories (they have, or
   will have, their own policies); see the README's
-  [Lafiya Organization](README.md#lafiya-organization) section.
+  [HenBridge Organization](README.md#henbridge-organization) section.
 
 ## Supported versions
 

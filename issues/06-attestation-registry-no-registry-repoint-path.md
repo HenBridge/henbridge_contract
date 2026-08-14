@@ -78,7 +78,7 @@ gap.
 ## Scope
 
 Adds one new function; does not change existing signatures or the
-attestation schema. Still worth flagging to `lafiya-web`/`lafiya-cli`
+attestation schema. Still worth flagging to `henbridge-web`/`henbridge-cli`
 maintainers as new admin-key attack surface (an address the admin can now
 change).
 

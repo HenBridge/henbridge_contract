@@ -84,7 +84,7 @@ Requires an explicit decision, not a default:
 ## Alternatives Considered
 
 **Enforce scope entirely off-chain** (only ever construct authorization
-entries for the two intended contracts via `lafiya-cli`/deploy tooling).
+entries for the two intended contracts via `henbridge-cli`/deploy tooling).
 Workable as an interim measure, but depends on every signer's tooling
 behaving correctly indefinitely. An on-chain guardrail is strictly
 stronger: it holds even if a signer's tooling is compromised or a signer

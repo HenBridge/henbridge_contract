@@ -77,7 +77,7 @@ CI-01 means `cargo test` never ran on the PR or on `main` post-merge — the
 
 - PR #94 and whatever issue it closed are misleading records: they claim
   a shipped feature that does not exist.
-- Anyone integrating against the batch API (`lafiya-cli`, `lafiya-web`,
+- Anyone integrating against the batch API (`henbridge-cli`, `henbridge-web`,
   or an operator following `docs/error-codes.md` if it had landed) is
   working against a feature that was never actually deployed.
 - Demonstrates that a passing merge (green checkmark, or in this case no
